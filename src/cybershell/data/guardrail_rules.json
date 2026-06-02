@@ -1,0 +1,206 @@
+{
+  "version": "0.1.0",
+  "rules": [
+    {
+      "id": "fs.rm_recursive_force",
+      "pattern": "\\brm\\s+(-[A-Za-z]*r[A-Za-z]*f|-[A-Za-z]*f[A-Za-z]*r)\\b|\\brm\\s+.*\\s/\\s*$",
+      "category": "destructive_filesystem",
+      "weight": 70,
+      "severity": "block",
+      "message": "Recursive forced removal can permanently destroy files or systems.",
+      "mitre_tactic": "Impact",
+      "mitre_technique": "T1485"
+    },
+    {
+      "id": "fs.delete_root",
+      "pattern": "\\brm\\b.*(--no-preserve-root|\\s/\\s*$)",
+      "category": "destructive_filesystem",
+      "weight": 95,
+      "severity": "block",
+      "message": "Deletion target appears to include the filesystem root.",
+      "mitre_tactic": "Impact",
+      "mitre_technique": "T1485"
+    },
+    {
+      "id": "disk.mkfs",
+      "pattern": "\\bmkfs(\\.[A-Za-z0-9]+)?\\b|\\bwipefs\\b|\\bshred\\b",
+      "category": "disk_destruction",
+      "weight": 72,
+      "severity": "block",
+      "message": "Disk formatting or wiping command detected.",
+      "mitre_tactic": "Impact",
+      "mitre_technique": "T1561"
+    },
+    {
+      "id": "disk.dd_device_write",
+      "pattern": "\\bdd\\b.*\\bof=/dev/",
+      "category": "disk_destruction",
+      "weight": 76,
+      "severity": "block",
+      "message": "Raw block-device write detected.",
+      "mitre_tactic": "Impact",
+      "mitre_technique": "T1561"
+    },
+    {
+      "id": "shell.curl_pipe_shell",
+      "pattern": "\\b(curl|wget)\\b.*\\|\\s*(sudo\\s+)?(sh|bash|zsh)\\b",
+      "category": "remote_code_execution",
+      "weight": 52,
+      "severity": "warn",
+      "message": "Downloaded content is being piped directly into a shell.",
+      "mitre_tactic": "Execution",
+      "mitre_technique": "T1059"
+    },
+    {
+      "id": "shell.reverse_shell_tcp",
+      "pattern": "(/dev/tcp/|bash\\s+-i|nc\\s+.*\\s-e\\s+|ncat\\s+.*--exec|socat\\s+.*exec:)",
+      "category": "network_exfiltration",
+      "weight": 70,
+      "severity": "block",
+      "message": "Reverse-shell or interactive network shell pattern detected.",
+      "mitre_tactic": "Command and Control",
+      "mitre_technique": "T1105"
+    },
+    {
+      "id": "shell.fork_bomb",
+      "pattern": ":\\s*\\(\\)\\s*\\{\\s*:\\|:",
+      "category": "resource_exhaustion",
+      "weight": 86,
+      "severity": "block",
+      "message": "Fork-bomb pattern detected.",
+      "mitre_tactic": "Impact",
+      "mitre_technique": "T1499"
+    },
+    {
+      "id": "priv.sudo_mutation",
+      "pattern": "\\bsudo\\s+(rm|dd|mkfs|wipefs|shred|chmod|chown|iptables|ufw|systemctl)\\b",
+      "category": "privilege_escalation",
+      "weight": 20,
+      "severity": "warn",
+      "message": "Privileged mutation command requires extra review.",
+      "mitre_tactic": "Privilege Escalation",
+      "mitre_technique": "T1548"
+    },
+    {
+      "id": "priv.chmod_world_writable",
+      "pattern": "\\bchmod\\s+(-R\\s+)?777\\b",
+      "category": "privilege_escalation",
+      "weight": 35,
+      "severity": "warn",
+      "message": "World-writable permissions can expose sensitive files.",
+      "mitre_tactic": "Defense Evasion",
+      "mitre_technique": "T1222"
+    },
+    {
+      "id": "priv.suid_bit",
+      "pattern": "\\bchmod\\s+.*\\+s\\b|\\bchmod\\s+[0-7]*4[0-7]{3}\\b",
+      "category": "persistence",
+      "weight": 44,
+      "severity": "warn",
+      "message": "SUID/SGID permission changes can create persistence or escalation paths.",
+      "mitre_tactic": "Persistence",
+      "mitre_technique": "T1548"
+    },
+    {
+      "id": "secret.private_key_read",
+      "pattern": "\\b(cat|less|more|grep|awk|sed)\\b.*(id_rsa|id_ed25519|\\.pem|\\.key)\\b",
+      "category": "secrets_access",
+      "weight": 46,
+      "severity": "warn",
+      "message": "Command may print private key material to the terminal.",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1552"
+    },
+    {
+      "id": "secret.shadow_read",
+      "pattern": "(/etc/shadow|/etc/gshadow)",
+      "category": "secrets_access",
+      "weight": 55,
+      "severity": "warn",
+      "message": "Command references local password hash stores.",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1003"
+    },
+    {
+      "id": "secret.env_token",
+      "pattern": "(AWS_SECRET_ACCESS_KEY|GITHUB_TOKEN|PRIVATE_KEY|API_KEY|\\.env)",
+      "category": "secrets_access",
+      "weight": 30,
+      "severity": "warn",
+      "message": "Command may expose application secrets or tokens.",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1552"
+    },
+    {
+      "id": "k8s.dump_secrets",
+      "pattern": "\\bkubectl\\b.*\\b(get|describe)\\b.*\\bsecret(s)?\\b",
+      "category": "secrets_access",
+      "weight": 42,
+      "severity": "warn",
+      "message": "Kubernetes secret access should be minimized and audited.",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1552"
+    },
+    {
+      "id": "firewall.flush_or_disable",
+      "pattern": "\\biptables\\b.*(-F|--flush)|\\bufw\\s+disable\\b|\\bsystemctl\\s+(stop|disable)\\s+(firewalld|ufw)\\b",
+      "category": "firewall_tampering",
+      "weight": 48,
+      "severity": "warn",
+      "message": "Firewall disablement or flush operation detected.",
+      "mitre_tactic": "Defense Evasion",
+      "mitre_technique": "T1562"
+    },
+    {
+      "id": "persistence.cron_write",
+      "pattern": "\\b(crontab\\s+-e|echo\\b.*>>\\s*/etc/cron|systemctl\\s+enable\\b)",
+      "category": "persistence",
+      "weight": 38,
+      "severity": "warn",
+      "message": "Command may create or modify persistence mechanisms.",
+      "mitre_tactic": "Persistence",
+      "mitre_technique": "T1053"
+    },
+    {
+      "id": "persistence.authorized_keys_write",
+      "pattern": ">>\\s*~?/?\\.ssh/authorized_keys|authorized_keys",
+      "category": "persistence",
+      "weight": 45,
+      "severity": "warn",
+      "message": "SSH authorized_keys modification can establish persistent access.",
+      "mitre_tactic": "Persistence",
+      "mitre_technique": "T1098"
+    },
+    {
+      "id": "container.privileged_mount",
+      "pattern": "\\bdocker\\s+run\\b.*(--privileged|-v\\s*/:/|--pid=host|--net=host)",
+      "category": "container_escape_risk",
+      "weight": 45,
+      "severity": "warn",
+      "message": "Privileged container settings can weaken host isolation.",
+      "mitre_tactic": "Privilege Escalation",
+      "mitre_technique": "T1611"
+    },
+    {
+      "id": "recon.network_scan",
+      "pattern": "\\bnmap\\b.*(-A|-sV|-O|--script)",
+      "category": "network_reconnaissance",
+      "weight": 14,
+      "severity": "warn",
+      "message": "Network scanning can be sensitive outside approved scopes.",
+      "mitre_tactic": "Discovery",
+      "mitre_technique": "T1046"
+    },
+    {
+      "id": "archive.mass_exfil",
+      "pattern": "\\btar\\b.*\\b(czf|cf)\\b.*(/home|/etc|\\.ssh)|\\brsync\\b.*(/home|/etc|\\.ssh)",
+      "category": "network_exfiltration",
+      "weight": 34,
+      "severity": "warn",
+      "message": "Bulk archiving or transfer of sensitive paths may indicate data exposure.",
+      "mitre_tactic": "Exfiltration",
+      "mitre_technique": "T1560"
+    }
+  ]
+}
+

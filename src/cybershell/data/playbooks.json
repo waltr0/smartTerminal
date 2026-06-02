@@ -1,0 +1,131 @@
+{
+  "version": "0.1.0",
+  "playbooks": [
+    {
+      "id": "ssh-bruteforce-triage",
+      "title": "SSH Brute-Force Triage",
+      "summary": "Read-only workflow for investigating repeated SSH authentication failures.",
+      "steps": [
+        {
+          "name": "Review recent SSH logs",
+          "goal": "Find recent login attempts and service messages.",
+          "command": "journalctl -u ssh --since \"1 hour ago\""
+        },
+        {
+          "name": "Find failed password attempts",
+          "goal": "Identify brute-force indicators in auth logs.",
+          "command": "sudo grep -i \"failed password\" /var/log/auth.log"
+        },
+        {
+          "name": "Review active sessions",
+          "goal": "Check who is currently logged in.",
+          "command": "who"
+        },
+        {
+          "name": "Review recent login sources",
+          "goal": "Inspect recent sessions with source host details.",
+          "command": "last -a | head -50"
+        }
+      ]
+    },
+    {
+      "id": "suspicious-process-triage",
+      "title": "Suspicious Process Triage",
+      "summary": "Read-only workflow for identifying unusual processes and network listeners.",
+      "steps": [
+        {
+          "name": "List top CPU processes",
+          "goal": "Spot resource-heavy or unfamiliar processes.",
+          "command": "ps aux --sort=-%cpu | head"
+        },
+        {
+          "name": "Show process ancestry",
+          "goal": "Understand parent-child process chains.",
+          "command": "pstree -ap"
+        },
+        {
+          "name": "List network listeners",
+          "goal": "Find exposed services and owning processes.",
+          "command": "ss -tulpn"
+        },
+        {
+          "name": "Map connections to processes",
+          "goal": "Correlate process IDs with network activity.",
+          "command": "sudo lsof -i -P -n"
+        }
+      ]
+    },
+    {
+      "id": "linux-persistence-review",
+      "title": "Linux Persistence Review",
+      "summary": "Read-only workflow for reviewing common Linux persistence locations.",
+      "steps": [
+        {
+          "name": "List enabled services",
+          "goal": "Review services configured to start automatically.",
+          "command": "systemctl list-unit-files --type=service --state=enabled"
+        },
+        {
+          "name": "List systemd timers",
+          "goal": "Review scheduled systemd timers.",
+          "command": "systemctl list-timers --all"
+        },
+        {
+          "name": "Show user crontab",
+          "goal": "Review current user's scheduled cron tasks.",
+          "command": "crontab -l"
+        },
+        {
+          "name": "Find SUID binaries",
+          "goal": "Find privilege-sensitive binaries for review.",
+          "command": "find / -perm -4000 -type f 2>/dev/null"
+        }
+      ]
+    },
+    {
+      "id": "container-security-review",
+      "title": "Container Security Review",
+      "summary": "Read-only workflow for Docker container inventory and risky configuration review.",
+      "steps": [
+        {
+          "name": "List running containers",
+          "goal": "Create a concise running container inventory.",
+          "command": "docker ps --format \"table {{.ID}}\\t{{.Image}}\\t{{.Status}}\\t{{.Ports}}\""
+        },
+        {
+          "name": "Inspect container",
+          "goal": "Review container mounts, environment, and networking.",
+          "command": "docker inspect <container>"
+        },
+        {
+          "name": "Check privileged mode",
+          "goal": "Identify containers running with host-level privileges.",
+          "command": "docker inspect --format '{{.HostConfig.Privileged}}' <container>"
+        }
+      ]
+    },
+    {
+      "id": "kubernetes-rbac-review",
+      "title": "Kubernetes RBAC Review",
+      "summary": "Read-only workflow for reviewing Kubernetes access and cluster activity.",
+      "steps": [
+        {
+          "name": "Review effective permissions",
+          "goal": "List permissions for the current Kubernetes identity.",
+          "command": "kubectl auth can-i --list"
+        },
+        {
+          "name": "List pods across namespaces",
+          "goal": "Create workload inventory.",
+          "command": "kubectl get pods -A"
+        },
+        {
+          "name": "Review recent events",
+          "goal": "Inspect recent cluster-level activity.",
+          "command": "kubectl get events -A --sort-by=.lastTimestamp"
+        }
+      ]
+    }
+  ]
+}
+

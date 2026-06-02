@@ -1,0 +1,87 @@
+{
+  "version": "0.1.0",
+  "policies": [
+    {
+      "name": "soc",
+      "description": "Balanced blue-team mode for defensive investigation and incident response.",
+      "caution_threshold": 10,
+      "dangerous_threshold": 35,
+      "block_threshold": 60,
+      "safe_only_suggestions": false,
+      "lab_allows_recon": false,
+      "category_multipliers": {
+        "network_reconnaissance": 1.0,
+        "privilege_escalation": 1.0,
+        "secrets_access": 1.0
+      },
+      "category_floor_decisions": {}
+    },
+    {
+      "name": "strict",
+      "description": "Conservative mode for production systems; warning categories become more restrictive.",
+      "caution_threshold": 6,
+      "dangerous_threshold": 22,
+      "block_threshold": 45,
+      "safe_only_suggestions": true,
+      "lab_allows_recon": false,
+      "category_multipliers": {
+        "network_reconnaissance": 1.4,
+        "privilege_escalation": 1.4,
+        "secrets_access": 1.35,
+        "persistence": 1.35,
+        "firewall_tampering": 1.4
+      },
+      "category_floor_decisions": {
+        "remote_code_execution": "block",
+        "network_exfiltration": "block"
+      }
+    },
+    {
+      "name": "admin",
+      "description": "System administration mode; read-only and routine privileged inspection remain usable.",
+      "caution_threshold": 12,
+      "dangerous_threshold": 40,
+      "block_threshold": 64,
+      "safe_only_suggestions": false,
+      "lab_allows_recon": false,
+      "category_multipliers": {
+        "privilege_escalation": 0.9,
+        "operational_safety": 1.0,
+        "network_reconnaissance": 1.0
+      },
+      "category_floor_decisions": {}
+    },
+    {
+      "name": "learner",
+      "description": "Training mode; emphasizes warnings and explanations for risky categories.",
+      "caution_threshold": 8,
+      "dangerous_threshold": 28,
+      "block_threshold": 58,
+      "safe_only_suggestions": true,
+      "lab_allows_recon": false,
+      "category_multipliers": {
+        "network_reconnaissance": 1.2,
+        "privilege_escalation": 1.25,
+        "secrets_access": 1.25,
+        "persistence": 1.2
+      },
+      "category_floor_decisions": {}
+    },
+    {
+      "name": "lab",
+      "description": "Authorized lab/CTF mode; allows reconnaissance warnings while still blocking destructive behavior.",
+      "caution_threshold": 14,
+      "dangerous_threshold": 44,
+      "block_threshold": 70,
+      "safe_only_suggestions": false,
+      "lab_allows_recon": true,
+      "category_multipliers": {
+        "network_reconnaissance": 0.45,
+        "privilege_escalation": 0.85,
+        "container_escape_risk": 0.85,
+        "secrets_access": 1.0
+      },
+      "category_floor_decisions": {}
+    }
+  ]
+}

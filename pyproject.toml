@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cybershell-copilot"
+version = "0.1.0"
+description = "Offline cybersecurity-aware terminal command assistant with risk scoring and guardrails."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Elite Taskforce" }
+]
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["terminal", "cybersecurity", "linux", "cli", "guardrails", "mitre"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Environment :: Console",
+  "Topic :: Security",
+  "Topic :: System :: Shells",
+]
+
+[project.urls]
+Homepage = "https://github.com/waltr0/smartTerminal"
+Repository = "https://github.com/waltr0/smartTerminal"
+Issues = "https://github.com/waltr0/smartTerminal/issues"
+Documentation = "https://github.com/waltr0/smartTerminal/tree/main/docs"
+
+[project.scripts]
+cybershell = "cybershell.cli:main"
+cshell = "cybershell.cli:main"
+
+[project.optional-dependencies]
+research = [
+  "faiss-cpu>=1.7.4",
+  "numpy>=1.24",
+  "sentence-transformers>=2.7",
+]
+llm = [
+  "llama-cpp-python>=0.2.80",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cybershell = ["data/*.json", "data/*.jsonl"]

