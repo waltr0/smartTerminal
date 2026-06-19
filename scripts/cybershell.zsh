@@ -4,7 +4,7 @@
 #   source /path/to/cybershell-copilot/scripts/cybershell.zsh
 #
 # Key bindings:
-#   Ctrl-G        Insert a safe CyberShell suggestion.
+#   Ctrl-G        Auto-fill a safe CyberShell suggestion.
 #   Ctrl-X Ctrl-G Show an explanation/risk preview for the current line.
 
 export CYBERSHELL_CACHE_FILE="${CYBERSHELL_CACHE_FILE:-$HOME/.cybershell/cache.json}"
@@ -20,9 +20,9 @@ autoload -Uz add-zsh-hook
 add-zsh-hook precmd _cybershell_precmd
 
 _cybershell_insert_suggestion() {
-  local completion
-  completion="$("$CYBERSHELL_BIN" suggest \
-    --partial "$LBUFFER$RBUFFER" \
+  local response action insert
+  response="$("$CYBERSHELL_BIN" suggest \
+    --partial "$LBUFFER" \
     --cwd "$PWD" \
     --history-file "${HISTFILE:-$HOME/.zsh_history}" \
     --last-status "$__CYBERSHELL_LAST_STATUS" \
@@ -30,9 +30,20 @@ _cybershell_insert_suggestion() {
     --mode "$CYBERSHELL_MODE" \
     --cache-file "$CYBERSHELL_CACHE_FILE" \
     --safe-only \
-    --completion-only 2>/dev/null)"
-  if [ -n "$completion" ]; then
-    LBUFFER="${LBUFFER}${completion}"
+    --shell-insert 2>/dev/null)"
+  if [ -n "$response" ]; then
+    action="${response%%	*}"
+    insert="${response#*	}"
+    if [ "$action" = "$response" ]; then
+      zle reset-prompt
+      return
+    fi
+    if [ "$action" = "replace" ]; then
+      BUFFER="$insert"
+      CURSOR=${#BUFFER}
+    else
+      LBUFFER="${LBUFFER}${insert}"
+    fi
   fi
   zle reset-prompt
 }
@@ -48,4 +59,3 @@ zle -N cybershell-insert-suggestion _cybershell_insert_suggestion
 zle -N cybershell-explain-line _cybershell_explain_line
 bindkey '^G' cybershell-insert-suggestion
 bindkey '^X^G' cybershell-explain-line
-

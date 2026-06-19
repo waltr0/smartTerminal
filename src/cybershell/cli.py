@@ -41,6 +41,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Print only the completion text for shell integration.",
     )
     suggest.add_argument(
+        "--shell-insert",
+        action="store_true",
+        help="Print shell insertion action and text for Bash/Zsh integration.",
+    )
+    suggest.add_argument(
         "--safe-only",
         action="store_true",
         help="Suppress suggestions that require warning review.",
@@ -167,7 +172,7 @@ def cmd_suggest(args: argparse.Namespace) -> int:
         print(json.dumps(result.to_dict(), indent=2))
         return 0
 
-    if args.completion_only:
+    if args.completion_only or args.shell_insert:
         if (
             result.suggestion
             and result.risk.decision != Decision.BLOCK
@@ -177,7 +182,13 @@ def cmd_suggest(args: argparse.Namespace) -> int:
                 or result.risk.decision == Decision.ALLOW
             )
         ):
-            print(result.suggestion.completion, end="")
+            if args.shell_insert:
+                if result.suggestion.completion:
+                    print(f"append\t{result.suggestion.completion}", end="")
+                else:
+                    print(f"replace\t{result.suggestion.suggested_command}", end="")
+            else:
+                print(result.suggestion.completion, end="")
             return 0
         return 1
 

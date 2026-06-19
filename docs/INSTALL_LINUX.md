@@ -60,7 +60,7 @@ source ~/.bashrc
 
 Key bindings:
 
-- `Ctrl-G`: insert a safe suggestion.
+- `Ctrl-G`: auto-fill a safe suggestion. Prefixes are completed in place; natural-language intent is replaced with the safe command.
 - `Ctrl-X Ctrl-G`: show risk for the current line.
 
 ## Install With Zsh Key Bindings

@@ -33,6 +33,25 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 0, err)
         self.assertTrue(out)
 
+    def test_shell_insert_appends_prefix_completion(self) -> None:
+        code, out, err = self.invoke("suggest", "--partial", "ss", "--cwd", ".", "--shell-insert")
+        self.assertEqual(code, 0, err)
+        self.assertTrue(out.startswith("append\t"), out)
+        self.assertIn("-tulpn", out)
+
+    def test_shell_insert_replaces_natural_language_intent(self) -> None:
+        code, out, err = self.invoke(
+            "suggest",
+            "--partial",
+            "show ssh failed logins",
+            "--cwd",
+            ".",
+            "--shell-insert",
+        )
+        self.assertEqual(code, 0, err)
+        self.assertTrue(out.startswith("replace\t"), out)
+        self.assertIn("failed password", out.lower())
+
     def test_suggest_suppresses_blocked_partial(self) -> None:
         code, out, err = self.invoke("suggest", "--partial", "rm -rf /", "--cwd", "/")
         self.assertEqual(code, 2, err)

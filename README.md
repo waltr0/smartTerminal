@@ -77,6 +77,7 @@ Detailed docs:
 - [Linux install](docs/INSTALL_LINUX.md)
 - [Kali setup](docs/KALI_SETUP.md)
 - [Shell integration](docs/SHELL_INTEGRATION.md)
+- [User manual](docs/CyberShell_Copilot_User_Manual.pdf)
 - [Full project PDF guide](docs/CyberShell_Copilot_Project_Guide.pdf)
 
 ## Quick Commands
@@ -95,7 +96,7 @@ cybershell bench-eval --fail-on-miss
 
 When shell integration is installed:
 
-- `Ctrl-G`: insert a safe suggestion.
+- `Ctrl-G`: auto-fill a safe suggestion. If you typed a command prefix, it appends the missing part. If you typed natural-language intent, it replaces the line with the safe command.
 - `Ctrl-X Ctrl-G`: show risk for the current command line.
 
 ## Policy Modes
