@@ -15,7 +15,7 @@ sudo apt install -y git python3 python3-venv python3-pip bash zsh
 
 ```bash
 git clone https://github.com/waltr0/smartTerminal.git
-cd cybershell-copilot
+cd smartTerminal
 bash install.sh --shell bash
 ```
 

@@ -200,7 +200,36 @@
       "message": "Bulk archiving or transfer of sensitive paths may indicate data exposure.",
       "mitre_tactic": "Exfiltration",
       "mitre_technique": "T1560"
+    },
+    {
+      "id": "intent.reverse_shell_or_payload",
+      "pattern": "\\b(reverse\\s+shell|bind\\s+shell|meterpreter|backdoor|keylogger|ransomware|malware\\s+payload|payload\\s+for\\s+(attack|exploit|shell))\\b",
+      "category": "remote_code_execution",
+      "weight": 82,
+      "severity": "block",
+      "message": "Natural-language intent describes malware, payload, backdoor, or shell access behavior.",
+      "mitre_tactic": "Command and Control",
+      "mitre_technique": "T1105"
+    },
+    {
+      "id": "intent.credential_theft",
+      "pattern": "\\b(steal|dump|exfiltrate|crack|phish)\\b.*\\b(passwords?|tokens?|credentials?|hashes?|keys?)\\b|\\b(passwords?|tokens?|credentials?|hashes?|keys?)\\b.*\\b(steal|dump|exfiltrate|crack|phish)\\b",
+      "category": "secrets_access",
+      "weight": 70,
+      "severity": "block",
+      "message": "Natural-language intent appears to request credential theft or secret exfiltration.",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1552"
+    },
+    {
+      "id": "intent.defense_evasion",
+      "pattern": "\\b(disable|bypass|evade|turn\\s+off)\\b.*\\b(logging|audit|firewall|edr|antivirus|defender|security\\s+tools?)\\b",
+      "category": "defense_evasion",
+      "weight": 66,
+      "severity": "block",
+      "message": "Natural-language intent appears to request disabling or bypassing security controls.",
+      "mitre_tactic": "Defense Evasion",
+      "mitre_technique": "T1562"
     }
   ]
 }
-

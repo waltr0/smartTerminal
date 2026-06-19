@@ -6,6 +6,8 @@ from cybershell.data_loader import load_json_resource
 from cybershell.models import CommandRecord, ShellContext, Suggestion
 from cybershell.text import normalize_space, tokenize
 
+MIN_RETRIEVAL_SCORE = 1.0
+
 
 @dataclass(slots=True)
 class RetrievalHit:
@@ -52,14 +54,15 @@ class CommandKnowledgeBase:
 
     def retrieve(self, context: ShellContext, top_k: int = 3) -> list[RetrievalHit]:
         partial = normalize_space(context.partial_command)
-        query = " ".join(
-            [
-                partial,
-                context.cwd,
-                " ".join(context.history[-5:]),
-                " ".join(f"{key}={value}" for key, value in context.env.items()),
-            ]
-        )
+        query_parts = [
+            partial,
+            " ".join(context.history[-5:]),
+            " ".join(f"{key}={value}" for key, value in context.env.items()),
+        ]
+        cwd = normalize_space(context.cwd)
+        if cwd and cwd not in {".", "/"}:
+            query_parts.append(cwd)
+        query = " ".join(query_parts)
         query_tokens = set(tokenize(query))
         if not query_tokens and not partial:
             return []
@@ -76,13 +79,13 @@ class CommandKnowledgeBase:
                 ):
                     candidates.add(record.id)
         if not candidates:
-            candidates = set(self._by_id)
+            return []
 
         hits: list[RetrievalHit] = []
         for record_id in candidates:
             record = self._by_id[record_id]
             score = self._score_record(record, query_tokens, partial)
-            if score > 0:
+            if score >= MIN_RETRIEVAL_SCORE:
                 hits.append(RetrievalHit(record=record, score=score))
         hits.sort(key=lambda hit: hit.score, reverse=True)
         return hits[:top_k]

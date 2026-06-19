@@ -21,6 +21,7 @@ class AuditLog:
             "cwd": result.context.cwd,
             "shell": result.context.shell,
             "decision": result.risk.decision.value,
+            "status": result.status.value,
             "risk_level": result.risk.level.value,
             "risk_score": result.risk.score,
             "matched_rules": [finding.rule_id for finding in result.risk.findings],
@@ -64,4 +65,3 @@ def redacted_context(context: ShellContext) -> dict[str, Any]:
     payload = context.to_dict()
     payload["env"] = env
     return payload
-

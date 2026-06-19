@@ -26,7 +26,7 @@ CyberShell asks:
 
 - Offline command suggestions from a built-in blue-team command knowledge base.
 - Cyber risk scoring for typed or generated commands.
-- Guardrail blocking for destructive filesystem, disk-wipe, reverse-shell, and fork-bomb patterns.
+- Guardrail blocking for destructive filesystem, disk-wipe, reverse-shell, fork-bomb, and harmful natural-language intent patterns.
 - Warning-level detection for secrets access, firewall tampering, persistence, privileged mutation, Kubernetes secret access, public scanning, and bulk archive/exfiltration patterns.
 - MITRE ATT&CK-style tactic and technique metadata in risk findings.
 - Safer alternatives for high-risk commands.
@@ -47,7 +47,7 @@ sudo apt update
 sudo apt install -y git python3 python3-venv python3-pip
 
 git clone https://github.com/waltr0/smartTerminal.git
-cd cybershell-copilot
+cd smartTerminal
 bash install.sh
 cybershell doctor
 ```
@@ -92,6 +92,17 @@ cybershell history-audit --history-file ~/.bash_history
 cybershell bench-eval --fail-on-miss
 ```
 
+## Query Handling Contract
+
+CyberShell treats every input as one of four outcomes:
+
+- `answered`: a safe candidate was generated and scored.
+- `clarify`: the request is too broad, so CyberShell asks for target, scope, or defensive goal instead of guessing.
+- `unsupported`: the request is outside the packaged command model.
+- `blocked`: the command or natural-language intent violates safety policy.
+
+This makes the tool suitable for production-style use: recognized defensive work is assisted, vague work is clarified, unsupported work is stated clearly, and harmful intent is blocked.
+
 ## Shell Key Bindings
 
 When shell integration is installed:
@@ -128,6 +139,8 @@ Suggestion: journalctl -u ssh --since "1 hour ago"
 Completion: ctl -u ssh --since "1 hour ago"
 Source: knowledge-base (0.99)
 Why: Review recent SSH service logs for login activity and failures. Domain: incident-response. ATT&CK-style tactic: Credential Access.
+Status: answered
+Message: Safe candidate generated from packaged knowledge.
 
 Risk: safe / decision=allow / score=0
 Summary: No guardrail patterns matched; command appears safe for display.
@@ -178,7 +191,7 @@ Optional backends are for experiments and ablation studies.
 
 ```bash
 git clone https://github.com/waltr0/smartTerminal.git
-cd cybershell-copilot
+cd smartTerminal
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .

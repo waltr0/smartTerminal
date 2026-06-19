@@ -8,6 +8,7 @@ Shell context
   -> Knowledge base retrieval
   -> Candidate suggestion
   -> Policy-aware guardrail risk scoring
+  -> Response status: answered / clarify / unsupported / blocked
   -> Terminal output / suppression
   -> Optional audit event
 ```
@@ -52,7 +53,8 @@ latency.
 `SuggestionEngine`
 
 Coordinates the flow: block unsafe partial commands early, check cache, retrieve
-candidate records, score candidates, suppress blocked output, and write audit
+candidate records, score candidates, request clarification for broad input,
+mark unrelated input as unsupported, suppress blocked output, and write audit
 events when enabled.
 
 `AuditLog`
@@ -109,6 +111,17 @@ Suggestion:
   "source": "knowledge-base",
   "confidence": 0.99,
   "retrieved_id": "ir.ssh_recent_logs"
+}
+```
+
+Suggestion result:
+
+```json
+{
+  "status": "answered",
+  "message": "Safe candidate generated from packaged knowledge.",
+  "suggestion": {"suggested_command": "ss -tulpn"},
+  "risk": {"decision": "allow"}
 }
 ```
 

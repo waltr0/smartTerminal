@@ -49,7 +49,7 @@ Expected result:
 ```text
 CyberShell doctor
 Command records: 33
-Guardrail rules: 20
+Guardrail rules: 23
 Status: ready
 ```
 
@@ -85,11 +85,31 @@ bash install.sh --shell all
 
 Important: `Ctrl-G` only fills the command line. It does not run the command. You still press Enter manually after reviewing the command.
 
-## 5. Auto-Fill Demonstrations
+## 5. Production Query Outcomes
 
-The next two demonstrations show both auto-fill modes: completing a normal command prefix and replacing natural-language intent with a safe command.
+CyberShell classifies every suggestion request into one of four outcomes:
 
-## 6. Demo: Auto-Fill Prefix Completion
+- `answered`: CyberShell found a safe command candidate and scored it.
+- `clarify`: the request is too broad, so CyberShell asks for target, scope, or defensive goal instead of guessing.
+- `unsupported`: the request does not map to the packaged command model.
+- `blocked`: the command or natural-language intent violates the active safety policy.
+
+Examples:
+
+```bash
+cybershell suggest --partial "ssh logs"
+cybershell suggest --partial "scan"
+cybershell suggest --partial "make me coffee"
+cybershell suggest --partial "make a reverse shell payload"
+```
+
+The first request should produce a useful defensive command. The second should ask for scope. The third should be marked unsupported. The fourth should be blocked.
+
+## 6. Auto-Fill Workflows
+
+The next two workflows show both auto-fill modes: completing a normal command prefix and replacing natural-language intent with a safe command.
+
+## 7. Workflow: Auto-Fill Prefix Completion
 
 Type this in your terminal, but do not press Enter:
 
@@ -111,7 +131,7 @@ ss -tulpn
 
 This is useful when you remember the beginning of a command but not the full safe form.
 
-## 7. Demo: Auto-Fill Natural-Language Intent
+## 8. Workflow: Auto-Fill Natural-Language Intent
 
 Type:
 
@@ -145,7 +165,7 @@ Expected style of output:
 replace  sudo grep -i "failed password" /var/log/auth.log
 ```
 
-## 8. Demo: Suggest Command
+## 9. Workflow: Suggest Command
 
 Use `suggest` when you want CyberShell to recommend a safe command:
 
@@ -159,6 +179,7 @@ What it shows:
 - Completion text if applicable.
 - Source of the suggestion.
 - Why the command was suggested.
+- Status: `answered`, `clarify`, `unsupported`, or `blocked`.
 - Risk score and decision.
 
 JSON output:
@@ -167,7 +188,7 @@ JSON output:
 cybershell suggest --partial "journal" --cwd /var/log --json
 ```
 
-## 9. Demo: Risk Check
+## 10. Workflow: Risk Check
 
 Use `risk` before running a command you are unsure about:
 
@@ -185,7 +206,7 @@ cybershell risk --mode strict -- "curl http://example.com/install.sh | bash"
 
 This helps detect dangerous copy-paste commands.
 
-## 10. Demo: Explain a Command
+## 11. Workflow: Explain a Command
 
 Use `explain` when you want more detail:
 
@@ -200,7 +221,7 @@ This shows:
 - Matching rule or finding.
 - Safer alternatives.
 
-## 11. Demo: Search the Knowledge Base
+## 12. Workflow: Search the Knowledge Base
 
 Search built-in safe commands:
 
@@ -214,7 +235,7 @@ Machine-readable output:
 cybershell kb-search "ssh logs" --json
 ```
 
-## 12. Demo: Policy Modes
+## 13. Workflow: Policy Modes
 
 List modes:
 
@@ -236,7 +257,7 @@ Run a risk check in strict mode:
 cybershell risk --mode strict -- "curl http://example.com/install.sh | bash"
 ```
 
-## 13. Demo: Guardrail Rules
+## 14. Workflow: Guardrail Rules
 
 List packaged safety rules:
 
@@ -250,7 +271,7 @@ JSON:
 cybershell rules --json
 ```
 
-## 14. Demo: Playbooks
+## 15. Workflow: Playbooks
 
 List defensive workflows:
 
@@ -266,7 +287,7 @@ cybershell playbook show ssh-bruteforce-triage
 
 Other playbooks include suspicious process triage, Linux persistence review, container security review, and Kubernetes RBAC review.
 
-## 15. Demo: History Audit
+## 16. Workflow: History Audit
 
 Scan your shell history:
 
@@ -282,7 +303,7 @@ cybershell history-audit --history-file ~/.zsh_history
 
 This helps identify commands that would trigger warnings or blocks.
 
-## 16. Demo: Audit Report
+## 17. Workflow: Audit Report
 
 Show a summary of CyberShell audit records:
 
@@ -296,7 +317,7 @@ If you use a custom audit file:
 cybershell audit-report --audit-file ~/.cybershell/audit.jsonl
 ```
 
-## 17. Demo: Accept a Suggestion into Cache
+## 18. Workflow: Accept a Suggestion into Cache
 
 Use `accept` to remember a trusted suggestion for a prefix:
 
@@ -312,7 +333,7 @@ cybershell suggest --partial "jctl"
 
 CyberShell can return the cached suggestion.
 
-## 18. Demo: Interactive Mode
+## 19. Workflow: Interactive Mode
 
 Start a small interactive loop:
 
@@ -322,7 +343,7 @@ cybershell interactive
 
 Type intent or partial commands. Type `exit` or press `Ctrl-C` to leave.
 
-## 19. Demo: Backend Status
+## 20. Workflow: Backend Status
 
 Check optional local AI/research backend availability:
 
@@ -332,7 +353,7 @@ cybershell backends
 
 The core application works even if optional FAISS, sentence-transformer, or local LLM packages are unavailable.
 
-## 20. Demo: Benchmark
+## 21. Workflow: Benchmark
 
 Run CyberShell-Bench:
 
@@ -342,7 +363,7 @@ cybershell bench-eval --fail-on-miss
 
 This validates guardrail behavior and prints accuracy, precision, recall, and latency.
 
-## 21. Uninstall
+## 22. Uninstall
 
 Remove the app:
 
@@ -356,7 +377,7 @@ Remove app data too:
 bash uninstall.sh --purge-data
 ```
 
-## 22. Troubleshooting
+## 23. Troubleshooting
 
 If `Ctrl-G` does nothing:
 

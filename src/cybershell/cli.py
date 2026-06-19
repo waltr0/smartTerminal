@@ -15,7 +15,13 @@ from cybershell.cache import PrefixCache
 from cybershell.data_loader import load_json_resource
 from cybershell.engine import SuggestionEngine
 from cybershell.kb import CommandKnowledgeBase
-from cybershell.models import Decision, RiskAssessment, ShellContext, Suggestion
+from cybershell.models import (
+    Decision,
+    RiskAssessment,
+    ShellContext,
+    Suggestion,
+    SuggestionStatus,
+)
 from cybershell.policy import PolicyRegistry
 from cybershell.risk import GuardrailEngine
 
@@ -193,7 +199,9 @@ def cmd_suggest(args: argparse.Namespace) -> int:
         return 1
 
     print(format_suggestion_result(result))
-    return 0 if result.risk.decision != Decision.BLOCK else 2
+    if result.risk.decision == Decision.BLOCK:
+        return 2
+    return 0 if result.status == SuggestionStatus.ANSWERED else 1
 
 
 def cmd_risk(args: argparse.Namespace) -> int:
@@ -548,7 +556,15 @@ def format_suggestion_result(result) -> str:
         lines.append(f"Source: {result.suggestion.source} ({result.suggestion.confidence:.2f})")
         lines.append(f"Why: {result.suggestion.explanation}")
     else:
-        lines.append("Suggestion: <suppressed>")
+        if result.status == SuggestionStatus.CLARIFY:
+            lines.append("Suggestion: <needs clarification>")
+        elif result.status == SuggestionStatus.UNSUPPORTED:
+            lines.append("Suggestion: <unsupported>")
+        else:
+            lines.append("Suggestion: <suppressed>")
+    lines.append(f"Status: {result.status.value}")
+    if result.message:
+        lines.append(f"Message: {result.message}")
     lines.append("")
     lines.append(format_risk(result.risk))
     return "\n".join(lines)

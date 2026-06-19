@@ -6,7 +6,7 @@ Thanks for helping improve CyberShell Copilot.
 
 ```bash
 git clone https://github.com/waltr0/smartTerminal.git
-cd cybershell-copilot
+cd smartTerminal
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e .

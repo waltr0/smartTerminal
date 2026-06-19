@@ -56,7 +56,33 @@ class CliTests(unittest.TestCase):
         code, out, err = self.invoke("suggest", "--partial", "rm -rf /", "--cwd", "/")
         self.assertEqual(code, 2, err)
         self.assertIn("Suggestion: <suppressed>", out)
+        self.assertIn("Status: blocked", out)
         self.assertIn("decision=block", out)
+
+    def test_suggest_clarifies_vague_query(self) -> None:
+        code, out, err = self.invoke("suggest", "--partial", "scan", "--cwd", ".")
+        self.assertEqual(code, 1, err)
+        self.assertIn("Suggestion: <needs clarification>", out)
+        self.assertIn("Status: clarify", out)
+        self.assertIn("target", out.lower())
+
+    def test_suggest_marks_unrelated_query_unsupported(self) -> None:
+        code, out, err = self.invoke("suggest", "--partial", "make me coffee", "--cwd", ".")
+        self.assertEqual(code, 1, err)
+        self.assertIn("Suggestion: <unsupported>", out)
+        self.assertIn("Status: unsupported", out)
+
+    def test_suggest_blocks_harmful_natural_language_intent(self) -> None:
+        code, out, err = self.invoke(
+            "suggest",
+            "--partial",
+            "make a reverse shell payload",
+            "--cwd",
+            ".",
+        )
+        self.assertEqual(code, 2, err)
+        self.assertIn("Status: blocked", out)
+        self.assertIn("intent.reverse_shell_or_payload", out)
 
     def test_risk_json(self) -> None:
         code, out, err = self.invoke("risk", "--json", "--", "cat", "~/.ssh/id_rsa")
@@ -132,14 +158,14 @@ class CliTests(unittest.TestCase):
         )
         self.assertEqual(code, 0, err)
         payload = json.loads(out)
-        self.assertEqual(payload["cases"], 25)
+        self.assertEqual(payload["cases"], 28)
         self.assertEqual(payload["failures"], [])
 
     def test_bench_eval_packaged_default(self) -> None:
         code, out, err = self.invoke("bench-eval", "--json")
         self.assertEqual(code, 0, err)
         payload = json.loads(out)
-        self.assertEqual(payload["cases"], 25)
+        self.assertEqual(payload["cases"], 28)
         self.assertEqual(payload["failures"], [])
 
     def test_history_audit(self) -> None:

@@ -12,6 +12,9 @@ validated.
 5. Blocked suggestions produce no shell insertion.
 6. Audit logging is local and minimized.
 7. Retrieved knowledge-base content is treated as data, not authority.
+8. Vague requests must ask for scope instead of guessing.
+9. Unsupported requests must be stated clearly.
+10. Harmful natural-language intent is evaluated by the same guardrail engine as shell syntax.
 
 ## Risk Levels
 
@@ -32,6 +35,25 @@ High-risk behavior matched. The command requires explicit human review.
 `blocked`
 
 The command must not be rendered as ghost text or inserted by shell integration.
+
+## Suggestion Outcomes
+
+`answered`
+
+A command candidate was generated, scored, and displayed.
+
+`clarify`
+
+The request is too broad to answer safely. CyberShell asks for target, scope, or
+defensive goal.
+
+`unsupported`
+
+The request does not map to the packaged command model.
+
+`blocked`
+
+The command or natural-language intent violates the active policy.
 
 ## Policy Modes
 
@@ -61,6 +83,7 @@ deterministic validation.
 - `container_escape_risk`
 - `network_reconnaissance`
 - `operational_safety`
+- `defense_evasion`
 - `syntax`
 
 ## ATT&CK-Style Mapping

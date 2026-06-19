@@ -19,6 +19,13 @@ class Decision(str, Enum):
     BLOCK = "block"
 
 
+class SuggestionStatus(str, Enum):
+    ANSWERED = "answered"
+    BLOCKED = "blocked"
+    CLARIFY = "clarify"
+    UNSUPPORTED = "unsupported"
+
+
 @dataclass(slots=True)
 class ShellContext:
     partial_command: str
@@ -116,6 +123,8 @@ class SuggestionResult:
     suggestion: Suggestion | None
     risk: RiskAssessment
     mode: str = "soc"
+    status: SuggestionStatus = SuggestionStatus.ANSWERED
+    message: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -123,5 +132,6 @@ class SuggestionResult:
             "suggestion": self.suggestion.to_dict() if self.suggestion else None,
             "risk": self.risk.to_dict(),
             "mode": self.mode,
+            "status": self.status.value,
+            "message": self.message,
         }
-

@@ -15,6 +15,13 @@ class RiskEngineTests(unittest.TestCase):
         self.assertEqual(result.level, RiskLevel.BLOCKED)
         self.assertTrue(any(f.rule_id == "fs.rm_recursive_force" for f in result.findings))
 
+    def test_blocks_natural_language_reverse_shell_intent(self) -> None:
+        result = self.engine.assess("make a reverse shell payload")
+        self.assertEqual(result.decision, Decision.BLOCK)
+        self.assertTrue(
+            any(f.rule_id == "intent.reverse_shell_or_payload" for f in result.findings)
+        )
+
     def test_warns_on_private_key_read(self) -> None:
         result = self.engine.assess("cat ~/.ssh/id_rsa")
         self.assertEqual(result.decision, Decision.WARN)
