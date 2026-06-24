@@ -1,0 +1,6 @@
+CyberShell Copilot — baseline environment
+captured_utc: 2026-06-24T10:03:37Z
+git_commit:   7f3e0c08ed9dc1ad7ccbd403589cc05fbbe120c8
+git_describe: 7f3e0c0 (branched from main @ 7f3e0c0)
+uname:        Linux 6.18.5 x86_64 GNU/Linux
+python:       Python 3.12.3

@@ -1,0 +1,42 @@
+test_accept_and_cache_lookup (test_cli.CliTests.test_accept_and_cache_lookup) ... ok
+test_audit_report (test_cli.CliTests.test_audit_report) ... ok
+test_backends_json (test_cli.CliTests.test_backends_json) ... ok
+test_bench_eval (test_cli.CliTests.test_bench_eval) ... ok
+test_bench_eval_packaged_default (test_cli.CliTests.test_bench_eval_packaged_default) ... ok
+test_doctor (test_cli.CliTests.test_doctor) ... ok
+test_explain (test_cli.CliTests.test_explain) ... ok
+test_history_audit (test_cli.CliTests.test_history_audit) ... ok
+test_kb_search_json (test_cli.CliTests.test_kb_search_json) ... ok
+test_playbooks (test_cli.CliTests.test_playbooks) ... ok
+test_policies_json (test_cli.CliTests.test_policies_json) ... ok
+test_risk_json (test_cli.CliTests.test_risk_json) ... ok
+test_rules_json (test_cli.CliTests.test_rules_json) ... ok
+test_shell_insert_appends_prefix_completion (test_cli.CliTests.test_shell_insert_appends_prefix_completion) ... ok
+test_shell_insert_replaces_natural_language_intent (test_cli.CliTests.test_shell_insert_replaces_natural_language_intent) ... ok
+test_suggest_blocks_harmful_natural_language_intent (test_cli.CliTests.test_suggest_blocks_harmful_natural_language_intent) ... ok
+test_suggest_clarifies_vague_query (test_cli.CliTests.test_suggest_clarifies_vague_query) ... ok
+test_suggest_completion_only (test_cli.CliTests.test_suggest_completion_only) ... ok
+test_suggest_json (test_cli.CliTests.test_suggest_json) ... ok
+test_suggest_marks_unrelated_query_unsupported (test_cli.CliTests.test_suggest_marks_unrelated_query_unsupported) ... ok
+test_suggest_suppresses_blocked_partial (test_cli.CliTests.test_suggest_suppresses_blocked_partial) ... ok
+test_natural_language_abuse_intent_is_blocked (test_engine.SuggestionEngineTests.test_natural_language_abuse_intent_is_blocked) ... ok
+test_returns_blue_team_suggestion_from_context (test_engine.SuggestionEngineTests.test_returns_blue_team_suggestion_from_context) ... ok
+test_suggests_safe_command (test_engine.SuggestionEngineTests.test_suggests_safe_command) ... ok
+test_suppresses_blocked_partial (test_engine.SuggestionEngineTests.test_suppresses_blocked_partial) ... ok
+test_unrelated_intent_is_unsupported (test_engine.SuggestionEngineTests.test_unrelated_intent_is_unsupported) ... ok
+test_vague_intent_requests_clarification (test_engine.SuggestionEngineTests.test_vague_intent_requests_clarification) ... ok
+test_retrieves_docker_inventory (test_kb.KnowledgeBaseTests.test_retrieves_docker_inventory) ... ok
+test_retrieves_journalctl_for_ssh_logs (test_kb.KnowledgeBaseTests.test_retrieves_journalctl_for_ssh_logs) ... ok
+test_allows_read_only_network_inspection (test_risk.RiskEngineTests.test_allows_read_only_network_inspection) ... ok
+test_blocks_natural_language_reverse_shell_intent (test_risk.RiskEngineTests.test_blocks_natural_language_reverse_shell_intent) ... ok
+test_blocks_recursive_root_delete (test_risk.RiskEngineTests.test_blocks_recursive_root_delete) ... ok
+test_context_detects_secret_environment_dump (test_risk.RiskEngineTests.test_context_detects_secret_environment_dump) ... ok
+test_context_increases_root_mutation_risk (test_risk.RiskEngineTests.test_context_increases_root_mutation_risk) ... ok
+test_lab_policy_allows_low_scoring_recon (test_risk.RiskEngineTests.test_lab_policy_allows_low_scoring_recon) ... ok
+test_warns_on_private_key_read (test_risk.RiskEngineTests.test_warns_on_private_key_read) ... ok
+test_warns_on_scoped_network_scan (test_risk.RiskEngineTests.test_warns_on_scoped_network_scan) ... ok
+
+----------------------------------------------------------------------
+Ran 37 tests in 0.105s
+
+OK

