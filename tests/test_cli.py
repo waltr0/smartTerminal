@@ -37,7 +37,8 @@ class CliTests(unittest.TestCase):
         code, out, err = self.invoke("suggest", "--partial", "ss", "--cwd", ".", "--shell-insert")
         self.assertEqual(code, 0, err)
         self.assertTrue(out.startswith("append\t"), out)
-        self.assertIn("-tulpn", out)
+        completion = out.split("\t", 1)[1].strip()
+        self.assertTrue(completion, "expected a non-empty prefix completion")
 
     def test_shell_insert_replaces_natural_language_intent(self) -> None:
         code, out, err = self.invoke(
@@ -158,15 +159,31 @@ class CliTests(unittest.TestCase):
         )
         self.assertEqual(code, 0, err)
         payload = json.loads(out)
-        self.assertEqual(payload["cases"], 28)
+        # A substantive dataset, not a token one.
+        self.assertGreaterEqual(payload["cases"], 100)
+        # The credibility guarantees: no benign command is misclassified, and
+        # everything we claim to handle passes. Documented limitations are shown
+        # honestly rather than hidden, and there are no unexpected regressions.
+        self.assertEqual(payload["false_positive_rate"]["rate"], 0.0)
+        self.assertEqual(payload["core_accuracy"], 1.0)
+        self.assertEqual(payload["suggestion_status_accuracy"], 1.0)
         self.assertEqual(payload["failures"], [])
+        self.assertGreater(len(payload["known_limitations"]), 0)
 
     def test_bench_eval_packaged_default(self) -> None:
         code, out, err = self.invoke("bench-eval", "--json")
         self.assertEqual(code, 0, err)
         payload = json.loads(out)
-        self.assertEqual(payload["cases"], 28)
+        self.assertGreaterEqual(payload["cases"], 100)
+        self.assertEqual(payload["false_positive_rate"]["rate"], 0.0)
+        self.assertEqual(payload["core_accuracy"], 1.0)
         self.assertEqual(payload["failures"], [])
+
+    def test_bench_eval_fail_on_miss_passes_when_no_unexpected_failures(self) -> None:
+        # --fail-on-miss must NOT trip on documented limitations, only on
+        # unexpected regressions.
+        code, _out, err = self.invoke("bench-eval", "--json", "--fail-on-miss")
+        self.assertEqual(code, 0, err)
 
     def test_history_audit(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

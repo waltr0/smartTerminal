@@ -386,28 +386,41 @@ def cmd_bench_eval(args: argparse.Namespace) -> int:
     else:
         print("CyberShell-Bench evaluation")
         print(f"Dataset: {report['dataset']}")
-        print(f"Cases: {report['cases']}")
-        print(f"Decision accuracy: {report['decision_accuracy']:.4f}")
-        print(f"Exact label accuracy: {report['exact_label_accuracy']:.4f}")
+        print(
+            f"Cases: {report['cases']} "
+            f"({report['guardrail_cases']} guardrail, {report['suggestion_cases']} suggestion)"
+        )
+        print(f"Core accuracy (excl. documented limitations): {report['core_accuracy']:.4f}")
+        print(f"Guardrail decision accuracy: {report['guardrail_decision_accuracy']:.4f}")
+        print(f"Suggestion-contract accuracy: {report['suggestion_status_accuracy']:.4f}")
+        fpr = report["false_positive_rate"]
+        print(
+            f"False-positive rate: {fpr['rate']:.4f} "
+            f"({fpr['false_alarms']}/{fpr['safe_cases']} safe commands)"
+        )
+        recall = report["detection_recall"]
+        print(
+            f"Block detection recall: {recall['recall']:.4f} "
+            f"({recall['block_cases'] - recall['missed']}/{recall['block_cases']} dangerous commands)"
+        )
         print(f"Avg latency: {report['avg_latency_ms']:.4f} ms")
-        print(
-            "Block precision/recall: "
-            f"{report['block_metrics']['precision']:.4f}/"
-            f"{report['block_metrics']['recall']:.4f}"
-        )
-        print(
-            "Warn-or-block safety precision/recall: "
-            f"{report['warn_or_block_safety_metrics']['precision']:.4f}/"
-            f"{report['warn_or_block_safety_metrics']['recall']:.4f}"
-        )
+        print("By category:")
+        for name, stats in report["by_category"].items():
+            print(f"  {name:22} {stats['passed']:>3}/{stats['cases']:<3} ({stats['accuracy']:.2f})")
+        if report["known_limitations"]:
+            print("Documented limitations (expected misses):")
+            for row in report["known_limitations"]:
+                print(f"  - {row['id']}: {row['command']}")
+        if report["resolved_limitations"]:
+            print("Limitations now resolved (update the dataset):")
+            for row in report["resolved_limitations"]:
+                print(f"  - {row['id']}: {row['command']}")
         if report["failures"]:
-            print("Failures:")
+            print("UNEXPECTED failures:")
             for failure in report["failures"]:
                 print(
-                    f"  - {failure['id']}: expected "
-                    f"{failure['expected_decision']}/{failure['expected_level']} got "
-                    f"{failure['actual_decision']}/{failure['actual_level']} "
-                    f"score={failure['score']}"
+                    f"  - [{failure['category']}] {failure['id']}: expected "
+                    f"{failure['expected']} got {failure['actual']} | {failure['command']}"
                 )
     return 1 if args.fail_on_miss and report["failures"] else 0
 

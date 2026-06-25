@@ -181,7 +181,7 @@ class GuardrailEngine:
         home = self._home(context)
         cwd = (context.cwd or "").rstrip("/")
         segments = self._split_segments(command)
-        seg_argvs = [self._split_command(seg) for seg in segments]
+        seg_argvs = [self._effective_argv(self._split_command(seg)) for seg in segments]
         seg_heads = [argv[0] if argv else "" for argv in seg_argvs]
         mutating_heads = {"rm", "mv", "cp", "chmod", "chown", "dd", "mkfs", "wipefs", "shred"}
 
@@ -294,6 +294,19 @@ class GuardrailEngine:
     def _split_segments(self, command: str) -> list[str]:
         parts = re.split(r"\s*(?:\|\||&&|;|\n|\|)\s*", command)
         return [stripped for stripped in (part.strip() for part in parts) if stripped]
+
+    def _effective_argv(self, argv: list[str]) -> list[str]:
+        """Drop a leading sudo/doas (and its options) so the real command head is
+        analyzed -- otherwise `sudo rm -rf ~` would escape target-aware scoring."""
+        if not argv or argv[0] not in {"sudo", "doas"}:
+            return argv
+        index = 1
+        while index < len(argv) and argv[index].startswith("-"):
+            if argv[index] in {"-u", "-g", "--user", "--group"} and index + 1 < len(argv):
+                index += 2
+            else:
+                index += 1
+        return argv[index:]
 
     # -- Evasion-resistant decoding / de-obfuscation -----------------------------
 

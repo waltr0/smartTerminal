@@ -6,364 +6,875 @@
       "command": "journalctl -u ssh --since \"1 hour ago\"",
       "description": "Review recent SSH service logs for login activity and failures.",
       "domain": "incident-response",
-      "tags": ["ssh", "logs", "auth", "blue-team", "journalctl"],
+      "tags": [
+        "ssh",
+        "logs",
+        "auth",
+        "blue-team",
+        "journalctl"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Credential Access",
       "mitre_technique": "T1110",
-      "examples": ["journalctl -u ssh --since today", "journalctl -u ssh -p warning"]
+      "examples": [
+        "journalctl -u ssh --since today",
+        "journalctl -u ssh -p warning"
+      ]
     },
     {
       "id": "ir.auth_failed_passwords",
       "command": "sudo grep -i \"failed password\" /var/log/auth.log",
       "description": "Find failed SSH password attempts in Debian/Ubuntu auth logs.",
       "domain": "incident-response",
-      "tags": ["ssh", "auth", "failed", "bruteforce", "logs"],
+      "tags": [
+        "ssh",
+        "auth",
+        "failed",
+        "bruteforce",
+        "logs"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Credential Access",
       "mitre_technique": "T1110",
-      "examples": ["sudo grep -Ei \"failed|invalid user\" /var/log/auth.log"]
+      "examples": [
+        "sudo grep -Ei \"failed|invalid user\" /var/log/auth.log"
+      ]
     },
     {
       "id": "ir.system_warnings",
       "command": "sudo journalctl -p warning --since \"24 hours ago\"",
       "description": "Review warning-and-higher system journal entries from the last day.",
       "domain": "incident-response",
-      "tags": ["journalctl", "logs", "warnings", "triage"],
+      "tags": [
+        "journalctl",
+        "logs",
+        "warnings",
+        "triage"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1082",
-      "examples": ["sudo journalctl -p err --since today"]
+      "examples": [
+        "sudo journalctl -p err --since today"
+      ]
     },
     {
       "id": "net.list_listeners",
       "command": "ss -tulpn",
       "description": "List listening TCP/UDP sockets and owning processes.",
       "domain": "network-defense",
-      "tags": ["network", "ports", "listeners", "processes", "ss"],
+      "tags": [
+        "network",
+        "ports",
+        "listeners",
+        "processes",
+        "ss"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1049",
-      "examples": ["ss -tunap", "ss -ltnp"]
+      "examples": [
+        "ss -tunap",
+        "ss -ltnp"
+      ]
     },
     {
       "id": "net.lsof_connections",
       "command": "sudo lsof -i -P -n",
       "description": "Map network connections to processes without DNS lookups.",
       "domain": "network-defense",
-      "tags": ["network", "connections", "processes", "lsof"],
+      "tags": [
+        "network",
+        "connections",
+        "processes",
+        "lsof"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1049",
-      "examples": ["sudo lsof -iTCP -sTCP:LISTEN -P -n"]
+      "examples": [
+        "sudo lsof -iTCP -sTCP:LISTEN -P -n"
+      ]
     },
     {
       "id": "net.tcpdump_sample",
       "command": "sudo tcpdump -i any -c 50 -nn",
       "description": "Capture a short read-only packet sample for triage.",
       "domain": "network-defense",
-      "tags": ["network", "packet", "tcpdump", "triage"],
+      "tags": [
+        "network",
+        "packet",
+        "tcpdump",
+        "triage"
+      ],
       "risk_level": "caution",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1049",
-      "examples": ["sudo tcpdump -i eth0 -c 25 -nn host <ip>"]
+      "examples": [
+        "sudo tcpdump -i eth0 -c 25 -nn host <ip>"
+      ]
     },
     {
       "id": "net.route_table",
       "command": "ip route show",
       "description": "Display routing table to understand network paths.",
       "domain": "network-defense",
-      "tags": ["network", "route", "ip"],
+      "tags": [
+        "network",
+        "route",
+        "ip"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1016",
-      "examples": ["ip addr show", "ip neigh show"]
+      "examples": [
+        "ip addr show",
+        "ip neigh show"
+      ]
     },
     {
       "id": "fw.iptables_rules",
       "command": "sudo iptables -S",
       "description": "Show firewall rules without modifying them.",
       "domain": "host-hardening",
-      "tags": ["firewall", "iptables", "rules", "hardening"],
+      "tags": [
+        "firewall",
+        "iptables",
+        "rules",
+        "hardening"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Defense Evasion",
       "mitre_technique": "T1562",
-      "examples": ["sudo iptables -L -n -v", "sudo nft list ruleset"]
+      "examples": [
+        "sudo iptables -L -n -v",
+        "sudo nft list ruleset"
+      ]
     },
     {
       "id": "fw.ufw_status",
       "command": "sudo ufw status verbose",
       "description": "Review UFW firewall status and configured rules.",
       "domain": "host-hardening",
-      "tags": ["firewall", "ufw", "status", "hardening"],
+      "tags": [
+        "firewall",
+        "ufw",
+        "status",
+        "hardening"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Defense Evasion",
       "mitre_technique": "T1562",
-      "examples": ["sudo ufw status numbered"]
+      "examples": [
+        "sudo ufw status numbered"
+      ]
     },
     {
       "id": "proc.cpu_top",
       "command": "ps aux --sort=-%cpu | head",
       "description": "Show top CPU-consuming processes for quick triage.",
       "domain": "incident-response",
-      "tags": ["process", "cpu", "triage", "ps"],
+      "tags": [
+        "process",
+        "cpu",
+        "triage",
+        "ps"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1057",
-      "examples": ["ps aux --sort=-%mem | head"]
+      "examples": [
+        "ps aux --sort=-%mem | head"
+      ]
     },
     {
       "id": "proc.tree",
       "command": "pstree -ap",
       "description": "Display process ancestry to spot suspicious parent-child chains.",
       "domain": "incident-response",
-      "tags": ["process", "pstree", "triage"],
+      "tags": [
+        "process",
+        "pstree",
+        "triage"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1057",
-      "examples": ["pstree -aps <pid>"]
+      "examples": [
+        "pstree -aps <pid>"
+      ]
     },
     {
       "id": "acct.logged_in_users",
       "command": "who",
       "description": "List users currently logged in to the host.",
       "domain": "account-audit",
-      "tags": ["users", "sessions", "who", "audit"],
+      "tags": [
+        "users",
+        "sessions",
+        "who",
+        "audit"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1033",
-      "examples": ["w", "users"]
+      "examples": [
+        "w",
+        "users"
+      ]
     },
     {
       "id": "acct.last_logins",
       "command": "last -a | head -50",
       "description": "Review recent login sessions with source host information.",
       "domain": "account-audit",
-      "tags": ["users", "sessions", "last", "audit"],
+      "tags": [
+        "users",
+        "sessions",
+        "last",
+        "audit"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1033",
-      "examples": ["lastlog", "lastb -a | head"]
+      "examples": [
+        "lastlog",
+        "lastb -a | head"
+      ]
     },
     {
       "id": "acct.passwd_entries",
       "command": "getent passwd",
       "description": "List passwd database entries through NSS for account review.",
       "domain": "account-audit",
-      "tags": ["users", "passwd", "accounts", "audit"],
+      "tags": [
+        "users",
+        "passwd",
+        "accounts",
+        "audit"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1087",
-      "examples": ["awk -F: '$3 >= 1000 {print $1,$3,$7}' /etc/passwd"]
+      "examples": [
+        "awk -F: '$3 >= 1000 {print $1,$3,$7}' /etc/passwd"
+      ]
     },
     {
       "id": "fs.suid_find",
       "command": "find / -perm -4000 -type f 2>/dev/null",
       "description": "Find SUID binaries for privilege-escalation exposure review.",
       "domain": "host-hardening",
-      "tags": ["suid", "permissions", "hardening", "find"],
+      "tags": [
+        "suid",
+        "permissions",
+        "hardening",
+        "find"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Privilege Escalation",
       "mitre_technique": "T1548",
-      "examples": ["find / -perm -2000 -type f 2>/dev/null"]
+      "examples": [
+        "find / -perm -2000 -type f 2>/dev/null"
+      ]
     },
     {
       "id": "fs.recent_modified",
       "command": "find . -type f -mtime -1 -ls",
       "description": "List files modified in the last day under the current directory.",
       "domain": "incident-response",
-      "tags": ["files", "modified", "find", "triage"],
+      "tags": [
+        "files",
+        "modified",
+        "find",
+        "triage"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1083",
-      "examples": ["find /etc -type f -mtime -7 -ls 2>/dev/null"]
+      "examples": [
+        "find /etc -type f -mtime -7 -ls 2>/dev/null"
+      ]
     },
     {
       "id": "fs.world_writable",
       "command": "find / -xdev -type d -perm -0002 -print 2>/dev/null",
       "description": "Find world-writable directories on the root filesystem.",
       "domain": "host-hardening",
-      "tags": ["permissions", "world-writable", "hardening", "find"],
+      "tags": [
+        "permissions",
+        "world-writable",
+        "hardening",
+        "find"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1083",
-      "examples": ["find / -xdev -type f -perm -0002 -print 2>/dev/null"]
+      "examples": [
+        "find / -xdev -type f -perm -0002 -print 2>/dev/null"
+      ]
     },
     {
       "id": "hash.sha256",
       "command": "sha256sum <file>",
       "description": "Compute a SHA-256 hash for file integrity checks.",
       "domain": "forensics",
-      "tags": ["hash", "forensics", "integrity", "sha256"],
+      "tags": [
+        "hash",
+        "forensics",
+        "integrity",
+        "sha256"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Collection",
       "mitre_technique": "T1005",
-      "examples": ["sha256sum /bin/bash"]
+      "examples": [
+        "sha256sum /bin/bash"
+      ]
     },
     {
       "id": "docker.ps",
       "command": "docker ps --format \"table {{.ID}}\\t{{.Image}}\\t{{.Status}}\\t{{.Ports}}\"",
       "description": "List running containers in a compact review table.",
       "domain": "container-security",
-      "tags": ["docker", "containers", "inventory"],
+      "tags": [
+        "docker",
+        "containers",
+        "inventory"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1613",
-      "examples": ["docker ps -a", "docker images"]
+      "examples": [
+        "docker ps -a",
+        "docker images"
+      ]
     },
     {
       "id": "docker.inspect",
       "command": "docker inspect <container>",
       "description": "Inspect container configuration, mounts, environment, and network settings.",
       "domain": "container-security",
-      "tags": ["docker", "inspect", "containers", "configuration"],
+      "tags": [
+        "docker",
+        "inspect",
+        "containers",
+        "configuration"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1613",
-      "examples": ["docker inspect --format '{{json .Mounts}}' <container>"]
+      "examples": [
+        "docker inspect --format '{{json .Mounts}}' <container>"
+      ]
     },
     {
       "id": "docker.privileged_check",
       "command": "docker inspect --format '{{.HostConfig.Privileged}}' <container>",
       "description": "Check whether a Docker container is running in privileged mode.",
       "domain": "container-security",
-      "tags": ["docker", "privileged", "containers", "hardening"],
+      "tags": [
+        "docker",
+        "privileged",
+        "containers",
+        "hardening"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Privilege Escalation",
       "mitre_technique": "T1611",
-      "examples": ["docker inspect --format '{{json .HostConfig.Binds}}' <container>"]
+      "examples": [
+        "docker inspect --format '{{json .HostConfig.Binds}}' <container>"
+      ]
     },
     {
       "id": "k8s.pods_all",
       "command": "kubectl get pods -A",
       "description": "List Kubernetes pods across namespaces for inventory and triage.",
       "domain": "kubernetes-security",
-      "tags": ["kubernetes", "pods", "inventory", "kubectl"],
+      "tags": [
+        "kubernetes",
+        "pods",
+        "inventory",
+        "kubectl"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1613",
-      "examples": ["kubectl get pods -A -o wide"]
+      "examples": [
+        "kubectl get pods -A -o wide"
+      ]
     },
     {
       "id": "k8s.auth_can_i",
       "command": "kubectl auth can-i --list",
       "description": "Review effective Kubernetes RBAC permissions for the current identity.",
       "domain": "kubernetes-security",
-      "tags": ["kubernetes", "rbac", "permissions", "kubectl"],
+      "tags": [
+        "kubernetes",
+        "rbac",
+        "permissions",
+        "kubectl"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1069",
-      "examples": ["kubectl auth can-i get pods -A"]
+      "examples": [
+        "kubectl auth can-i get pods -A"
+      ]
     },
     {
       "id": "k8s.events",
       "command": "kubectl get events -A --sort-by=.lastTimestamp",
       "description": "Review recent Kubernetes events across namespaces.",
       "domain": "kubernetes-security",
-      "tags": ["kubernetes", "events", "triage", "kubectl"],
+      "tags": [
+        "kubernetes",
+        "events",
+        "triage",
+        "kubectl"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1613",
-      "examples": ["kubectl describe pod <pod> -n <namespace>"]
+      "examples": [
+        "kubectl describe pod <pod> -n <namespace>"
+      ]
     },
     {
       "id": "cloud.aws_identity",
       "command": "aws sts get-caller-identity",
       "description": "Show the active AWS identity without exposing credentials.",
       "domain": "cloud-security",
-      "tags": ["aws", "identity", "cloud", "iam"],
+      "tags": [
+        "aws",
+        "identity",
+        "cloud",
+        "iam"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1087",
-      "examples": ["aws configure list"]
+      "examples": [
+        "aws configure list"
+      ]
     },
     {
       "id": "cloud.aws_open_sg",
       "command": "aws ec2 describe-security-groups --query 'SecurityGroups[*].IpPermissions[?IpRanges[?CidrIp==`0.0.0.0/0`]]'",
       "description": "Inspect AWS security groups for public ingress exposure.",
       "domain": "cloud-security",
-      "tags": ["aws", "security-groups", "exposure", "cloud"],
+      "tags": [
+        "aws",
+        "security-groups",
+        "exposure",
+        "cloud"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1580",
-      "examples": ["aws ec2 describe-instances"]
+      "examples": [
+        "aws ec2 describe-instances"
+      ]
     },
     {
       "id": "git.status",
       "command": "git status --short",
       "description": "Show concise repository working-tree status.",
       "domain": "developer-security",
-      "tags": ["git", "status", "repository"],
+      "tags": [
+        "git",
+        "status",
+        "repository"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1083",
-      "examples": ["git diff --stat"]
+      "examples": [
+        "git diff --stat"
+      ]
     },
     {
       "id": "git.secret_scan_simple",
       "command": "grep -RInE \"(AKIA[0-9A-Z]{16}|BEGIN RSA PRIVATE KEY|GITHUB_TOKEN|AWS_SECRET_ACCESS_KEY)\" .",
       "description": "Run a simple local repository scan for common secret patterns.",
       "domain": "developer-security",
-      "tags": ["git", "secrets", "scan", "repository"],
+      "tags": [
+        "git",
+        "secrets",
+        "scan",
+        "repository"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Credential Access",
       "mitre_technique": "T1552",
-      "examples": ["git grep -n \"AWS_SECRET_ACCESS_KEY\""]
+      "examples": [
+        "git grep -n \"AWS_SECRET_ACCESS_KEY\""
+      ]
     },
     {
       "id": "pkg.debian_security_updates",
       "command": "apt list --upgradable 2>/dev/null | grep -i security",
       "description": "Review available Debian/Ubuntu security updates.",
       "domain": "host-hardening",
-      "tags": ["apt", "updates", "security", "patching"],
+      "tags": [
+        "apt",
+        "updates",
+        "security",
+        "patching"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Defense Evasion",
       "mitre_technique": "T1070",
-      "examples": ["sudo unattended-upgrades --dry-run --debug"]
+      "examples": [
+        "sudo unattended-upgrades --dry-run --debug"
+      ]
     },
     {
       "id": "svc.failed_services",
       "command": "systemctl --failed",
       "description": "List failed systemd units for operational triage.",
       "domain": "incident-response",
-      "tags": ["systemd", "services", "failed", "triage"],
+      "tags": [
+        "systemd",
+        "services",
+        "failed",
+        "triage"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1007",
-      "examples": ["systemctl status <service>"]
+      "examples": [
+        "systemctl status <service>"
+      ]
     },
     {
       "id": "svc.enabled_services",
       "command": "systemctl list-unit-files --type=service --state=enabled",
       "description": "List enabled services that may start automatically.",
       "domain": "persistence-review",
-      "tags": ["systemd", "services", "persistence", "audit"],
+      "tags": [
+        "systemd",
+        "services",
+        "persistence",
+        "audit"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Persistence",
       "mitre_technique": "T1543",
-      "examples": ["systemctl list-timers --all"]
+      "examples": [
+        "systemctl list-timers --all"
+      ]
     },
     {
       "id": "cron.current_user",
       "command": "crontab -l",
       "description": "Show current user's scheduled cron jobs.",
       "domain": "persistence-review",
-      "tags": ["cron", "persistence", "audit"],
+      "tags": [
+        "cron",
+        "persistence",
+        "audit"
+      ],
       "risk_level": "safe",
       "mitre_tactic": "Persistence",
       "mitre_technique": "T1053",
-      "examples": ["sudo ls -la /etc/cron.*"]
+      "examples": [
+        "sudo ls -la /etc/cron.*"
+      ]
     },
     {
       "id": "scan.nmap_service_top_ports",
       "command": "nmap -sV --top-ports 100 <host>",
       "description": "Perform scoped service-version discovery against an approved host.",
       "domain": "authorized-assessment",
-      "tags": ["nmap", "scan", "service-discovery", "authorized"],
+      "tags": [
+        "nmap",
+        "scan",
+        "service-discovery",
+        "authorized"
+      ],
       "risk_level": "caution",
       "mitre_tactic": "Discovery",
       "mitre_technique": "T1046",
-      "examples": ["nmap -sT -Pn <host>"]
+      "examples": [
+        "nmap -sT -Pn <host>"
+      ]
+    },
+    {
+      "id": "ir.auth_log_failures",
+      "command": "grep -i \"failed password\" /var/log/auth.log",
+      "description": "Find failed SSH/PAM password attempts in the auth log.",
+      "domain": "incident-response",
+      "tags": [
+        "auth",
+        "ssh",
+        "brute-force",
+        "logs",
+        "blue-team"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1110",
+      "examples": []
+    },
+    {
+      "id": "ir.failed_logins_lastb",
+      "command": "lastb -a -F",
+      "description": "List recent failed login attempts with source and timestamp.",
+      "domain": "incident-response",
+      "tags": [
+        "auth",
+        "failed-login",
+        "blue-team"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1110",
+      "examples": []
+    },
+    {
+      "id": "ir.auditd_logins",
+      "command": "ausearch -m USER_LOGIN --start today",
+      "description": "Query auditd for today's login events.",
+      "domain": "incident-response",
+      "tags": [
+        "auditd",
+        "auth",
+        "logs",
+        "blue-team"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1110",
+      "examples": []
+    },
+    {
+      "id": "net.ip_addresses",
+      "command": "ip -brief addr",
+      "description": "Show interface addresses in brief form.",
+      "domain": "network",
+      "tags": [
+        "network",
+        "interfaces",
+        "ip"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Discovery",
+      "mitre_technique": "T1016",
+      "examples": []
+    },
+    {
+      "id": "net.routing_table_ip",
+      "command": "ip route show",
+      "description": "Display the kernel IP routing table.",
+      "domain": "network",
+      "tags": [
+        "network",
+        "routing",
+        "ip"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Discovery",
+      "mitre_technique": "T1016",
+      "examples": []
+    },
+    {
+      "id": "net.arp_neighbors",
+      "command": "ip neigh show",
+      "description": "Show the ARP/neighbor cache.",
+      "domain": "network",
+      "tags": [
+        "network",
+        "arp",
+        "neighbors"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Discovery",
+      "mitre_technique": "T1016",
+      "examples": []
+    },
+    {
+      "id": "net.established_conns",
+      "command": "ss -tanp state established",
+      "description": "List established TCP connections with owning processes.",
+      "domain": "network",
+      "tags": [
+        "network",
+        "connections",
+        "ss",
+        "blue-team"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Discovery",
+      "mitre_technique": "T1049",
+      "examples": []
+    },
+    {
+      "id": "fs.changed_etc",
+      "command": "find /etc -mtime -1 -type f",
+      "description": "Find files under /etc modified in the last day (integrity check).",
+      "domain": "file-integrity",
+      "tags": [
+        "integrity",
+        "etc",
+        "changes",
+        "blue-team"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Defense Evasion",
+      "mitre_technique": "T1070",
+      "examples": []
+    },
+    {
+      "id": "fs.rpm_verify",
+      "command": "rpm -Va",
+      "description": "Verify installed RPM packages against their manifests.",
+      "domain": "file-integrity",
+      "tags": [
+        "integrity",
+        "rpm",
+        "verify"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Defense Evasion",
+      "mitre_technique": "T1070",
+      "examples": []
+    },
+    {
+      "id": "pkg.recent_dpkg_installs",
+      "command": "grep \" install \" /var/log/dpkg.log",
+      "description": "List recently installed Debian packages.",
+      "domain": "package-management",
+      "tags": [
+        "packages",
+        "dpkg",
+        "audit"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Persistence",
+      "mitre_technique": "T1543",
+      "examples": []
+    },
+    {
+      "id": "proc.network_open_files",
+      "command": "lsof -i -nP",
+      "description": "List processes with open network sockets (no DNS/port resolution).",
+      "domain": "process",
+      "tags": [
+        "process",
+        "network",
+        "lsof",
+        "blue-team"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Discovery",
+      "mitre_technique": "T1049",
+      "examples": []
+    },
+    {
+      "id": "persist.list_user_cron",
+      "command": "crontab -l",
+      "description": "Show the current user's cron jobs (persistence review).",
+      "domain": "persistence-audit",
+      "tags": [
+        "cron",
+        "persistence",
+        "audit"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Persistence",
+      "mitre_technique": "T1053",
+      "examples": []
+    },
+    {
+      "id": "persist.enabled_units",
+      "command": "systemctl list-unit-files --state=enabled",
+      "description": "List enabled systemd units (persistence review).",
+      "domain": "persistence-audit",
+      "tags": [
+        "systemd",
+        "persistence",
+        "audit"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Persistence",
+      "mitre_technique": "T1543",
+      "examples": []
+    },
+    {
+      "id": "persist.cron_dirs",
+      "command": "ls -la /etc/cron.d /etc/cron.daily",
+      "description": "Inspect system cron directories for unexpected jobs.",
+      "domain": "persistence-audit",
+      "tags": [
+        "cron",
+        "persistence",
+        "audit"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Persistence",
+      "mitre_technique": "T1053",
+      "examples": []
+    },
+    {
+      "id": "k8s.recent_events",
+      "command": "kubectl get events --sort-by=.lastTimestamp",
+      "description": "List recent Kubernetes events, newest last.",
+      "domain": "kubernetes",
+      "tags": [
+        "k8s",
+        "events",
+        "blue-team"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Discovery",
+      "mitre_technique": "T1613",
+      "examples": []
+    },
+    {
+      "id": "cloud.gcp_projects",
+      "command": "gcloud projects list",
+      "description": "List accessible Google Cloud projects.",
+      "domain": "cloud",
+      "tags": [
+        "gcp",
+        "cloud",
+        "inventory"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Discovery",
+      "mitre_technique": "T1526",
+      "examples": []
+    },
+    {
+      "id": "cloud.aws_iam_users",
+      "command": "aws iam list-users",
+      "description": "List AWS IAM users in the account.",
+      "domain": "cloud",
+      "tags": [
+        "aws",
+        "iam",
+        "inventory"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Discovery",
+      "mitre_technique": "T1087",
+      "examples": []
+    },
+    {
+      "id": "container.image_history",
+      "command": "docker history --no-trunc",
+      "description": "Show the layer history of a container image.",
+      "domain": "containers",
+      "tags": [
+        "docker",
+        "image",
+        "audit"
+      ],
+      "risk_level": "safe",
+      "mitre_tactic": "Discovery",
+      "mitre_technique": "T1610",
+      "examples": []
     }
   ]
 }
-

@@ -1,7 +1,7 @@
 {
   "corpus": "baseline/baseline_corpus.jsonl",
-  "count": 39,
-  "git_commit": "62e51d83a32843e067d873f6123548be2f0ca1c8",
+  "count": 44,
+  "git_commit": "b1e96432c210b1c660708af0729bc5ae854c79cf",
   "rows": {
     "la01": {
       "command": "ls -la",
@@ -184,6 +184,26 @@
       "decision": "allow",
       "expectation": "lock_allow",
       "id": "la18",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la19": {
+      "command": "crontab -l",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la19",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la20": {
+      "command": "tar czf backup.tar.gz /home/u/project",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la20",
       "level": "safe",
       "matched_rules": [],
       "mode": "soc",
@@ -436,6 +456,34 @@
       "mode": "soc",
       "score": 166
     },
+    "lb20": {
+      "command": "sudo rm -rf ~",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb20",
+      "level": "blocked",
+      "matched_rules": [
+        "fs.destructive_critical_path",
+        "fs.rm_recursive_force",
+        "priv.sudo_mutation"
+      ],
+      "mode": "soc",
+      "score": 106
+    },
+    "lb21": {
+      "command": "chmod -R 777 /etc",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb21",
+      "level": "blocked",
+      "matched_rules": [
+        "context.sensitive_target",
+        "priv.chmod_recursive_world_writable",
+        "priv.chmod_world_writable"
+      ],
+      "mode": "soc",
+      "score": 120
+    },
     "lw01": {
       "command": "rm -rf /tmp/mycache",
       "decision": "warn",
@@ -460,6 +508,18 @@
       ],
       "mode": "soc",
       "score": 30
+    },
+    "lw03": {
+      "command": "cat ~/.aws/credentials",
+      "decision": "warn",
+      "expectation": "lock_warn",
+      "id": "lw03",
+      "level": "dangerous",
+      "matched_rules": [
+        "secret.cloud_credentials_read"
+      ],
+      "mode": "soc",
+      "score": 42
     }
   },
   "schema": "cybershell-behavior-snapshot/1"

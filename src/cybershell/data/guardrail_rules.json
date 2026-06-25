@@ -173,7 +173,7 @@
     },
     {
       "id": "persistence.cron_write",
-      "pattern": "\\b(crontab\\s+-e|echo\\b.*>>\\s*/etc/cron|systemctl\\s+enable\\b)",
+      "pattern": "(\\bcrontab\\s+-e\\b|\\|\\s*crontab\\b|\\bcrontab\\s+[^\\-\\s]\\S*|echo\\b[^|]*>>\\s*/etc/cron|systemctl\\s+enable\\b)",
       "category": "persistence",
       "weight": 38,
       "severity": "warn",
@@ -213,7 +213,7 @@
     },
     {
       "id": "archive.mass_exfil",
-      "pattern": "\\btar\\b.*\\b(czf|cf)\\b.*(/home|/etc|\\.ssh)|\\brsync\\b.*(/home|/etc|\\.ssh)",
+      "pattern": "(?:\\btar\\b|\\brsync\\b)[^|;&]*(?:\\s(?:/etc|/root|/home)(?:/\\*)?(?=\\s|$)|[^\\s|;&]*/\\.ssh\\b|\\s\\.ssh\\b)",
       "category": "network_exfiltration",
       "weight": 34,
       "severity": "warn",
@@ -250,6 +250,66 @@
       "message": "Natural-language intent appears to request disabling or bypassing security controls.",
       "mitre_tactic": "Defense Evasion",
       "mitre_technique": "T1562"
+    },
+    {
+      "id": "evasion.log_or_history_clearing",
+      "pattern": "(\\bhistory\\s+-c\\b|\\bunset\\s+HISTFILE\\b|HISTFILE=/dev/null|\\btruncate\\s+-s\\s*0\\s+[^|;&]*/var/log|:\\s*>\\s*/var/log/|>\\s*/var/log/(?:syslog|auth\\.log|messages|secure|kern\\.log)\\b|journalctl\\s+--(?:vacuum|rotate))",
+      "category": "defense_evasion",
+      "weight": 30,
+      "severity": "warn",
+      "message": "Clearing logs or shell history can destroy forensic evidence.",
+      "mitre_tactic": "Defense Evasion",
+      "mitre_technique": "T1070"
+    },
+    {
+      "id": "secret.cloud_credentials_read",
+      "pattern": "((?:cat|less|more|head|tail|cp|scp|base64|xxd|strings|nano|vim?)\\s+[^|;&]*(?:\\.aws/credentials|\\.config/gcloud|\\.kube/config|\\.docker/config\\.json)|gcloud\\s+auth\\s+print-access-token|az\\s+account\\s+get-access-token|aws\\s+configure\\s+get\\s+aws_secret)",
+      "category": "secrets_access",
+      "weight": 42,
+      "severity": "warn",
+      "message": "Command reads cloud or cluster credential material.",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1552"
+    },
+    {
+      "id": "recon.cloud_metadata_access",
+      "pattern": "(169\\.254\\.169\\.254|metadata\\.google\\.internal|metadata\\.azure\\.com)",
+      "category": "credential_access",
+      "weight": 40,
+      "severity": "warn",
+      "message": "Access to the cloud instance metadata endpoint is a common credential-theft vector.",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1552"
+    },
+    {
+      "id": "exfil.upload_sensitive",
+      "pattern": "((?:curl|wget)\\b[^|;&]*(?:--data(?:-binary|-urlencode)?\\s*@|-d\\s*@|--upload-file\\s+|-T\\s+)[^|;&]*(?:/etc/(?:passwd|shadow)|/\\.ssh/|/\\.aws/|\\.env\\b)|\\btar\\b[^|;&]*(?:/etc\\b|\\.ssh\\b)[^|;&]*\\|\\s*(?:nc|ncat|curl|ssh)\\b)",
+      "category": "exfiltration",
+      "weight": 45,
+      "severity": "warn",
+      "message": "Command appears to upload or pipe sensitive files off the host.",
+      "mitre_tactic": "Exfiltration",
+      "mitre_technique": "T1041"
+    },
+    {
+      "id": "cred.process_memory_dump",
+      "pattern": "(\\bgcore\\b|/proc/\\d+/mem\\b|/proc/kcore\\b)",
+      "category": "credential_access",
+      "weight": 40,
+      "severity": "warn",
+      "message": "Dumping process memory can expose credentials and secrets.",
+      "mitre_tactic": "Credential Access",
+      "mitre_technique": "T1003"
+    },
+    {
+      "id": "priv.chmod_recursive_world_writable",
+      "pattern": "\\bchmod\\b(?=[^|;&\\n]*(?:-R|--recursive))(?=[^|;&\\n]*[0-7]?777)[^|;&\\n]*\\s/(?:etc|usr|var|boot|root|bin|sbin|lib|lib64)(?:/\\S*)?(?=\\s|$)",
+      "category": "privilege_escalation",
+      "weight": 65,
+      "severity": "block",
+      "message": "Recursively making a system directory world-writable critically weakens host security.",
+      "mitre_tactic": "Defense Evasion",
+      "mitre_technique": "T1222"
     }
   ]
 }
