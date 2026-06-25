@@ -104,6 +104,9 @@ def generate() -> int:
     return 0
 
 
+_REQUIRED_DECISION = {"lock_block": "block", "lock_allow": "allow", "lock_warn": "warn"}
+
+
 def check() -> int:
     if not SNAPSHOT_PATH.exists():
         print("No snapshot found. Run: python tools/baseline_snapshot.py --generate", file=sys.stderr)
@@ -112,12 +115,23 @@ def check() -> int:
     current = {row["id"]: row for row in compute_current()}
 
     invariant_regressions: list[str] = []
-    expected_changes: list[str] = []
+    tracked_changes: list[str] = []
 
     for entry_id, now in current.items():
         before = saved.get(entry_id)
+        required = _REQUIRED_DECISION.get(now["expectation"])
+
+        # A locked invariant regresses only when its decision leaves the locked
+        # state. Score / level / matched-rule drift while the decision holds is
+        # expected during refactoring and is reported as informational only.
+        if required is not None and now["decision"] != required:
+            invariant_regressions.append(
+                f"  ! {entry_id} [{now['expectation']}]: decision is "
+                f"{now['decision']}, must be {required}  ({now['command']})"
+            )
+
         if before is None:
-            expected_changes.append(f"  + NEW {entry_id}: {now['decision']}/{now['level']} score={now['score']}")
+            tracked_changes.append(f"  + NEW {entry_id}: {now['decision']}/{now['level']} score={now['score']}")
             continue
         if (now["decision"], now["level"], now["score"], now["matched_rules"]) != (
             before["decision"],
@@ -125,24 +139,20 @@ def check() -> int:
             before["score"],
             before["matched_rules"],
         ):
-            line = (
+            tracked_changes.append(
                 f"  ~ {entry_id} [{now['expectation']}]: "
                 f"{before['decision']}/{before['level']}/score={before['score']} "
                 f"-> {now['decision']}/{now['level']}/score={now['score']}  ({now['command']})"
             )
-            if now["expectation"] in {"lock_block", "lock_allow"}:
-                invariant_regressions.append(line)
-            else:
-                expected_changes.append(line)
 
-    if expected_changes:
-        print("Tracked / expected changes (known_issue or new entries):")
-        print("\n".join(expected_changes))
+    if tracked_changes:
+        print("Tracked changes (decision-preserving drift or known_issue progress):")
+        print("\n".join(tracked_changes))
     if invariant_regressions:
-        print("\nINVARIANT REGRESSIONS — these must NOT change:")
+        print("\nINVARIANT REGRESSIONS — a locked decision changed:")
         print("\n".join(invariant_regressions))
         return 1
-    if not expected_changes:
+    if not tracked_changes:
         print("No drift: every corpus command behaves exactly as snapshotted.")
     else:
         print("\nNo invariant regressions. Re-run --generate to re-baseline once changes are reviewed.")

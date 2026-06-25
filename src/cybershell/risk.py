@@ -29,6 +29,21 @@ DEFAULT_POLICY = PolicyRegistry.packaged().get("soc")
 class GuardrailEngine:
     """Deterministic final authority for command safety decisions."""
 
+    SYSTEM_CRITICAL_DIRS = frozenset(
+        {
+            "/bin", "/boot", "/dev", "/etc", "/home", "/lib", "/lib32",
+            "/lib64", "/opt", "/proc", "/root", "/run", "/sbin", "/srv",
+            "/sys", "/usr", "/var",
+        }
+    )
+    CRITICAL_FILES = frozenset(
+        {"/etc/passwd", "/etc/shadow", "/etc/gshadow", "/etc/sudoers", "/etc/fstab"}
+    )
+    SENSITIVE_PREFIXES = (
+        "/etc", "/boot", "/usr", "/bin", "/sbin", "/lib", "/lib64",
+        "/var/log", "/root", "/sys", "/proc",
+    )
+
     def __init__(self, rules: list[GuardrailRule]) -> None:
         self.rules = rules
 
@@ -156,6 +171,7 @@ class GuardrailEngine:
         argv = self._split_command(command)
         head = argv[0] if argv else ""
         mutating_heads = {"rm", "mv", "cp", "chmod", "chown", "dd", "mkfs", "wipefs", "shred"}
+        home = self._home(context)
 
         if context.is_root and head in mutating_heads:
             findings.append(
@@ -171,20 +187,27 @@ class GuardrailEngine:
                 )
             )
 
-        sensitive_targets = self._sensitive_targets(argv, cwd)
-        if sensitive_targets and head in mutating_heads:
-            findings.append(
-                RiskFinding(
-                    rule_id="context.sensitive_target",
-                    category="destructive_filesystem",
-                    weight=20,
-                    severity="warn",
-                    message="The command targets a system-sensitive path.",
-                    evidence=", ".join(sensitive_targets[:3]),
-                    mitre_tactic="Impact",
-                    mitre_technique="T1485",
+        # rm is assessed by resolved target so that catastrophic paths block while
+        # routine project cleanup (e.g. `rm -rf node_modules`) is allowed.
+        if head == "rm":
+            findings.extend(self._destructive_rm_findings(argv, cwd, home))
+
+        # Path-target sensitivity for the remaining mutating commands.
+        if head in {"mv", "cp", "chmod", "chown"}:
+            sensitive_targets = self._sensitive_targets(argv, cwd, home)
+            if sensitive_targets:
+                findings.append(
+                    RiskFinding(
+                        rule_id="context.sensitive_target",
+                        category="destructive_filesystem",
+                        weight=20,
+                        severity="warn",
+                        message="The command targets a system-sensitive path.",
+                        evidence=", ".join(sensitive_targets[:3]),
+                        mitre_tactic="Impact",
+                        mitre_technique="T1485",
+                    )
                 )
-            )
 
         if context.last_exit_status not in (None, 0) and head in {"rm", "mv", "chmod", "chown"}:
             findings.append(
@@ -226,7 +249,7 @@ class GuardrailEngine:
                 )
             )
 
-        if self._redirects_to_sensitive_path(argv, cwd):
+        if self._redirects_to_sensitive_path(argv, cwd, home):
             findings.append(
                 RiskFinding(
                     rule_id="context.sensitive_redirection",
@@ -276,41 +299,168 @@ class GuardrailEngine:
         except ValueError:
             return command.split()
 
-    def _sensitive_targets(self, argv: list[str], cwd: str) -> list[str]:
-        sensitive = (
-            "/",
-            "/etc",
-            "/boot",
-            "/usr",
-            "/bin",
-            "/sbin",
-            "/lib",
-            "/lib64",
-            "/var/log",
-            "/root",
-            "/home",
-            "/.ssh",
-        )
-        targets: list[str] = []
-        for token in argv[1:]:
-            if token.startswith("-") or "=" in token:
-                continue
-            path = self._resolve_target(token, cwd)
-            if any(path == item or path.startswith(item.rstrip("/") + "/") for item in sensitive):
-                targets.append(path)
-        if not targets and (cwd in {"", "/"} or cwd.startswith(("/etc", "/boot", "/usr", "/var/log", "/root"))):
-            targets.append(cwd or "/")
-        return targets
+    def _home(self, context: ShellContext | None) -> str | None:
+        if context is None:
+            return None
+        env = context.env or {}
+        home = env.get("HOME") or env.get("USERPROFILE")
+        if home:
+            return home.rstrip("/") or "/"
+        if context.user == "root":
+            return "/root"
+        if context.user:
+            return f"/home/{context.user}"
+        return None
 
-    def _resolve_target(self, token: str, cwd: str) -> str:
-        if token.startswith("~"):
-            token = token.replace("~", "/home/user", 1)
+    def _resolve_target(self, token: str, cwd: str, home: str | None = None) -> str:
+        if token in {"~", "~/"}:
+            return (home or "/home/user").rstrip("/") or "/"
+        if token.startswith("~/"):
+            token = ((home or "/home/user").rstrip("/")) + token[1:]
         if token.startswith("/"):
             return str(PurePosixPath(token))
         base = cwd or "."
         if "\\" in base:
             return token
         return str(PurePosixPath(base) / token)
+
+    def _rm_flags(self, argv: list[str]) -> tuple[bool, bool]:
+        recursive = force = False
+        for token in argv[1:]:
+            if not token.startswith("-") or token == "-":
+                continue
+            if token.startswith("--"):
+                if token == "--recursive":
+                    recursive = True
+                elif token == "--force":
+                    force = True
+                continue
+            body = token[1:]
+            if "r" in body or "R" in body:
+                recursive = True
+            if "f" in body:
+                force = True
+        return recursive, force
+
+    def _rm_targets(self, argv: list[str]) -> list[str]:
+        targets: list[str] = []
+        for token in argv[1:]:
+            if token in {"&&", "||", ";", "|"}:
+                break
+            if token.startswith("-") and token != "-":
+                continue
+            targets.append(token)
+        return targets
+
+    def _classify_rm_target(self, token: str, cwd: str, home: str | None) -> str:
+        if token in {"/", "/*", "/.", "/.*", "~", "~/"}:
+            return "critical"
+        path = self._resolve_target(token, cwd, home)
+        norm = path.rstrip("/") or "/"
+        base = norm[:-2] if norm.endswith("/*") else norm
+        base = base.rstrip("/") or "/"
+        if base == "/":
+            return "critical"
+        if base in self.SYSTEM_CRITICAL_DIRS or base in self.CRITICAL_FILES:
+            return "critical"
+        if home and base == home.rstrip("/"):
+            return "critical"
+        if base.startswith("/home/") and base.count("/") == 2:
+            return "critical"  # an entire user's home directory
+        # "under a system directory" excludes the home trees (/home/<user>/... and
+        # /root/...), which are user data, not system files.
+        system_parents = self.SYSTEM_CRITICAL_DIRS - {"/home", "/root"}
+        for parent in system_parents:
+            if base.startswith(parent + "/"):
+                return "system_child"
+        # A relative target is routine project cleanup (e.g. `rm -rf node_modules`)
+        # and is allowed regardless of where the working directory happens to be.
+        if not (token.startswith("/") or token.startswith("~")):
+            return "local"
+        return "abs_other"
+
+    def _destructive_rm_findings(
+        self, argv: list[str], cwd: str, home: str | None
+    ) -> list[RiskFinding]:
+        targets = self._rm_targets(argv)
+        if not targets:
+            return []
+        recursive, force = self._rm_flags(argv)
+        tiers = [(token, self._classify_rm_target(token, cwd, home)) for token in targets]
+
+        critical = [token for token, tier in tiers if tier == "critical"]
+        if critical:
+            return [
+                RiskFinding(
+                    rule_id="fs.destructive_critical_path",
+                    category="destructive_filesystem",
+                    weight=80,
+                    severity="block",
+                    message="Removal targets the filesystem root, a system directory or file, or a home directory.",
+                    evidence=critical[0],
+                    mitre_tactic="Impact",
+                    mitre_technique="T1485",
+                )
+            ]
+        if not (recursive or force):
+            return []
+        system_child = [token for token, tier in tiers if tier == "system_child"]
+        if system_child:
+            return [
+                RiskFinding(
+                    rule_id="fs.destructive_system_subpath",
+                    category="destructive_filesystem",
+                    weight=18,
+                    severity="warn",
+                    message="Recursive or forced removal targets a path inside a system or home directory.",
+                    evidence=system_child[0],
+                    mitre_tactic="Impact",
+                    mitre_technique="T1485",
+                )
+            ]
+        abs_other = [token for token, tier in tiers if tier == "abs_other"]
+        if abs_other:
+            return [
+                RiskFinding(
+                    rule_id="fs.destructive_abs_path",
+                    category="destructive_filesystem",
+                    weight=14,
+                    severity="warn",
+                    message="Recursive or forced removal targets an absolute path outside the working directory.",
+                    evidence=abs_other[0],
+                    mitre_tactic="Impact",
+                    mitre_technique="T1485",
+                )
+            ]
+        return []
+
+    def _is_sensitive_path(self, path: str) -> bool:
+        norm = path.rstrip("/") or "/"
+        if norm == "/":
+            return True
+        if "/.ssh" in norm:
+            return True
+        for prefix in self.SENSITIVE_PREFIXES:
+            if norm == prefix or norm.startswith(prefix + "/"):
+                return True
+        return False
+
+    def _sensitive_targets(
+        self, argv: list[str], cwd: str, home: str | None = None
+    ) -> list[str]:
+        targets: list[str] = []
+        for token in argv[1:]:
+            if token.startswith("-") or "=" in token:
+                continue
+            path = self._resolve_target(token, cwd, home)
+            if self._is_sensitive_path(path):
+                targets.append(path)
+        if not targets and (
+            cwd in {"", "/"}
+            or any(cwd.startswith(prefix) for prefix in ("/etc", "/boot", "/usr", "/var/log", "/root"))
+        ):
+            targets.append(cwd or "/")
+        return targets
 
     def _has_secret_env_indicator(self, context: ShellContext) -> bool:
         markers = ("TOKEN", "SECRET", "KEY", "PASS", "CREDENTIAL")
@@ -320,14 +470,20 @@ class GuardrailEngine:
         env_keys = {key.upper() for key in context.env}
         return "KUBECONFIG" in env_keys or any("kubectl" in item for item in context.history[-5:])
 
-    def _redirects_to_sensitive_path(self, argv: list[str], cwd: str) -> bool:
+    def _redirects_to_sensitive_path(
+        self, argv: list[str], cwd: str, home: str | None = None
+    ) -> bool:
+        def is_sensitive(raw: str) -> bool:
+            path = self._resolve_target(raw, cwd, home)
+            if path.startswith(("/etc/cron", "/etc/systemd", "/etc/init", "/etc/profile", "/root")):
+                return True
+            return "/.ssh/" in path or path.endswith("/.ssh")
+
         for index, token in enumerate(argv):
             if token in {">", ">>"} and index + 1 < len(argv):
-                path = self._resolve_target(argv[index + 1], cwd)
-                if path.startswith(("/etc/cron", "/etc/systemd", "/root/.ssh", "/home/user/.ssh")):
+                if is_sensitive(argv[index + 1]):
                     return True
             if token.startswith((">", ">>")) and len(token) > 1:
-                path = self._resolve_target(token.lstrip(">"), cwd)
-                if path.startswith(("/etc/cron", "/etc/systemd", "/root/.ssh", "/home/user/.ssh")):
+                if is_sensitive(token.lstrip(">")):
                     return True
         return False

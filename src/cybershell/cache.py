@@ -52,7 +52,15 @@ class PrefixCache:
             self._items.popitem(last=False)
 
     def load(self, path: Path) -> None:
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            # A corrupt or unreadable cache must never crash the tool; start fresh.
+            self._items.clear()
+            return
+        if not isinstance(raw, dict):
+            self._items.clear()
+            return
         self._items.clear()
         for key, value in raw.get("items", {}).items():
             if isinstance(value, dict) and "suggested_command" in value:

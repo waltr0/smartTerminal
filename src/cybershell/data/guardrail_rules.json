@@ -3,21 +3,41 @@
   "rules": [
     {
       "id": "fs.rm_recursive_force",
-      "pattern": "\\brm\\s+(-[A-Za-z]*r[A-Za-z]*f|-[A-Za-z]*f[A-Za-z]*r)\\b|\\brm\\s+.*\\s/\\s*$",
+      "pattern": "\\brm\\b[^|;&\\n]*\\s(-[A-Za-z]*[rR][A-Za-z]*|--recursive)\\b",
       "category": "destructive_filesystem",
-      "weight": 70,
-      "severity": "block",
-      "message": "Recursive forced removal can permanently destroy files or systems.",
+      "weight": 6,
+      "severity": "warn",
+      "message": "Recursive removal detected; confirm the target before running.",
       "mitre_tactic": "Impact",
       "mitre_technique": "T1485"
     },
     {
       "id": "fs.delete_root",
-      "pattern": "\\brm\\b.*(--no-preserve-root|\\s/\\s*$)",
+      "pattern": "\\brm\\b[^|;&\\n]*(--no-preserve-root\\b|\\s/\\s*$|\\s/\\*(\\s|$))",
       "category": "destructive_filesystem",
       "weight": 95,
       "severity": "block",
       "message": "Deletion target appears to include the filesystem root.",
+      "mitre_tactic": "Impact",
+      "mitre_technique": "T1485"
+    },
+    {
+      "id": "fs.delete_system_path",
+      "pattern": "\\brm\\b(?=[^|;&\\n]*(?:\\s-[A-Za-z]*[rRfF]|\\s--recursive\\b|\\s--force\\b))[^|;&\\n]*\\s/(etc|boot|usr|bin|sbin|lib|lib32|lib64|var|root|home|opt|sys|proc|dev|run|srv)(/\\*|/)?(?=\\s|$)",
+      "category": "destructive_filesystem",
+      "weight": 80,
+      "severity": "block",
+      "message": "Recursive or forced removal targets a critical system directory.",
+      "mitre_tactic": "Impact",
+      "mitre_technique": "T1485"
+    },
+    {
+      "id": "fs.delete_critical_file",
+      "pattern": "\\brm\\b[^|;&\\n]*\\s(/etc/(?:passwd|shadow|gshadow|sudoers|fstab)|/boot/\\S+)(?=\\s|$)",
+      "category": "destructive_filesystem",
+      "weight": 80,
+      "severity": "block",
+      "message": "Removal targets a critical system file required for the host to function.",
       "mitre_tactic": "Impact",
       "mitre_technique": "T1485"
     },
@@ -53,7 +73,7 @@
     },
     {
       "id": "shell.reverse_shell_tcp",
-      "pattern": "(/dev/tcp/|bash\\s+-i|nc\\s+.*\\s-e\\s+|ncat\\s+.*--exec|socat\\s+.*exec:)",
+      "pattern": "(/dev/tcp/|/dev/udp/|\\bbash\\s+-i\\b|\\b(?:nc|ncat|netcat|nc\\.traditional)\\b[^|;&\\n]*\\s-e\\b|\\bncat\\b[^|;&\\n]*--exec\\b|\\bsocat\\b[^|;&\\n]*(?:exec|system):)",
       "category": "network_exfiltration",
       "weight": 70,
       "severity": "block",
@@ -123,7 +143,7 @@
     },
     {
       "id": "secret.env_token",
-      "pattern": "(AWS_SECRET_ACCESS_KEY|GITHUB_TOKEN|PRIVATE_KEY|API_KEY|\\.env)",
+      "pattern": "(AWS_SECRET_ACCESS_KEY|GITHUB_TOKEN|PRIVATE_KEY|\\bAPI_KEY\\b|(?:^|[\\s=:'\\\"/])\\.env(?:\\.[A-Za-z0-9_]+)?(?=$|[\\s:'\\\"/]))",
       "category": "secrets_access",
       "weight": 30,
       "severity": "warn",
@@ -163,7 +183,7 @@
     },
     {
       "id": "persistence.authorized_keys_write",
-      "pattern": ">>\\s*~?/?\\.ssh/authorized_keys|authorized_keys",
+      "pattern": "(?:>>?|\\btee\\b)[^|;&\\n]*authorized_keys\\b",
       "category": "persistence",
       "weight": 45,
       "severity": "warn",

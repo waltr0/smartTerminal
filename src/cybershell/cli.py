@@ -166,6 +166,25 @@ def add_context_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--root", action="store_true", help="Treat context as a root shell.")
 
 
+def _should_emit_completion(
+    result: "SuggestionResult", args: argparse.Namespace, policy
+) -> bool:
+    """Decide whether a completion / shell-insert line should be emitted.
+
+    Emit only when a suggestion exists and was not blocked. When safe-only mode is
+    active (either via ``--safe-only`` or the active policy), restrict emission to
+    suggestions the guardrails explicitly allow.
+    """
+    if result.suggestion is None:
+        return False
+    if result.risk.decision == Decision.BLOCK:
+        return False
+    safe_only = getattr(args, "safe_only", False) or policy.safe_only_suggestions
+    if safe_only and result.risk.decision != Decision.ALLOW:
+        return False
+    return True
+
+
 def cmd_suggest(args: argparse.Namespace) -> int:
     audit = AuditLog(args.audit_file) if args.audit else None
     cache = PrefixCache(path=args.cache_file) if args.cache_file else PrefixCache()
@@ -179,15 +198,7 @@ def cmd_suggest(args: argparse.Namespace) -> int:
         return 0
 
     if args.completion_only or args.shell_insert:
-        if (
-            result.suggestion
-            and result.risk.decision != Decision.BLOCK
-            and (
-                not args.safe_only
-                and not policy.safe_only_suggestions
-                or result.risk.decision == Decision.ALLOW
-            )
-        ):
+        if _should_emit_completion(result, args, policy):
             if args.shell_insert:
                 if result.suggestion.completion:
                     print(f"append\t{result.suggestion.completion}", end="")
@@ -408,14 +419,20 @@ def cmd_history_audit(args: argparse.Namespace) -> int:
     guardrails = GuardrailEngine.packaged()
     policy = PolicyRegistry.packaged().get(args.mode)
     lines = args.history_file.read_text(encoding="utf-8", errors="ignore").splitlines()
-    commands = [line.strip() for line in lines if line.strip()][-args.limit :]
+    numbered = [
+        (number, line.strip())
+        for number, line in enumerate(lines, start=1)
+        if line.strip()
+    ]
+    numbered = numbered[-args.limit :]
+    commands = [command for _, command in numbered]
     risky: list[dict[str, Any]] = []
-    for idx, command in enumerate(commands, start=max(1, len(commands) - args.limit + 1)):
+    for line_number, command in numbered:
         assessment = guardrails.assess(command, policy=policy)
         if assessment.decision != Decision.ALLOW:
             risky.append(
                 {
-                    "line": idx,
+                    "line": line_number,
                     "command": command,
                     "risk_level": assessment.level.value,
                     "decision": assessment.decision.value,

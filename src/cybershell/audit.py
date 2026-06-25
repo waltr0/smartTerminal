@@ -1,11 +1,31 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from cybershell.models import ShellContext, SuggestionResult
+
+
+_SECRET_ASSIGNMENT = re.compile(
+    r"\b([A-Za-z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|APIKEY|API_KEY|PRIVATE_KEY)[A-Za-z0-9_]*)=(\S+)",
+    re.IGNORECASE,
+)
+_SECRET_FLAG = re.compile(
+    r"(--?(?:password|passwd|token|secret|api[-_]?key|access[-_]?key)\b)(\s+|=)(\S+)",
+    re.IGNORECASE,
+)
+_AWS_KEY = re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b")
+
+
+def redact_command(command: str) -> str:
+    """Mask obvious secrets so they are never written to the local audit log."""
+    redacted = _SECRET_ASSIGNMENT.sub(r"\1=<redacted>", command)
+    redacted = _SECRET_FLAG.sub(r"\1\2<redacted>", redacted)
+    redacted = _AWS_KEY.sub("<redacted-key>", redacted)
+    return redacted
 
 
 class AuditLog:
@@ -17,7 +37,7 @@ class AuditLog:
         payload: dict[str, Any] = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "event": "suggestion_evaluated",
-            "partial_command": result.context.partial_command,
+            "partial_command": redact_command(result.context.partial_command),
             "cwd": result.context.cwd,
             "shell": result.context.shell,
             "decision": result.risk.decision.value,
@@ -64,4 +84,6 @@ def redacted_context(context: ShellContext) -> dict[str, Any]:
             env[key] = value
     payload = context.to_dict()
     payload["env"] = env
+    if payload.get("partial_command"):
+        payload["partial_command"] = redact_command(payload["partial_command"])
     return payload

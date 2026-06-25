@@ -51,9 +51,14 @@ class BaselineRegressionTests(unittest.TestCase):
         )
         return self.engine.assess(entry["command"], context, policy).decision.value
 
-    def test_corpus_has_all_three_categories(self) -> None:
+    def test_corpus_categories_valid(self) -> None:
         kinds = {row["expectation"] for row in self.corpus}
-        self.assertEqual(kinds, {"lock_block", "lock_allow", "known_issue"})
+        self.assertTrue(
+            kinds.issubset({"lock_block", "lock_allow", "lock_warn", "known_issue"}),
+            f"unexpected corpus categories: {kinds}",
+        )
+        self.assertIn("lock_block", kinds)
+        self.assertIn("lock_allow", kinds)
 
     def test_lock_block_invariants_hold(self) -> None:
         for entry in self.corpus:
@@ -73,6 +78,16 @@ class BaselineRegressionTests(unittest.TestCase):
                 self.assertEqual(
                     self._decision(entry), "allow",
                     f"{entry['id']} must always allow: {entry['command']}",
+                )
+
+    def test_lock_warn_invariants_hold(self) -> None:
+        for entry in self.corpus:
+            if entry["expectation"] != "lock_warn":
+                continue
+            with self.subTest(id=entry["id"], command=entry["command"]):
+                self.assertEqual(
+                    self._decision(entry), "warn",
+                    f"{entry['id']} must always warn: {entry['command']}",
                 )
 
     def test_known_issues_still_reproduce_documented_behavior(self) -> None:
