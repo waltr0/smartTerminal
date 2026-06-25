@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import re
 import shlex
 from dataclasses import dataclass
@@ -122,6 +123,17 @@ class GuardrailEngine:
                 score += finding.weight
                 findings.append(finding)
 
+        # Evasion-resistant pass: re-scan decoded / de-obfuscated views of the
+        # command so encoded or quote-mangled payloads cannot slip past the
+        # surface-level rule match. Only findings for rules not already matched
+        # are added, so non-obfuscated commands are unaffected.
+        seen_rule_ids = {finding.rule_id for finding in findings}
+        for finding in self._evasion_view_findings(normalized, seen_rule_ids):
+            finding = self._with_policy_weight(finding, active_policy)
+            score += finding.weight
+            findings.append(finding)
+            seen_rule_ids.add(finding.rule_id)
+
         if self._must_block(findings, active_policy) or score >= active_policy.block_threshold:
             level = RiskLevel.BLOCKED
             decision = Decision.BLOCK
@@ -166,63 +178,84 @@ class GuardrailEngine:
     def _contextual_checks(
         self, command: str, context: ShellContext
     ) -> list[RiskFinding]:
-        findings: list[RiskFinding] = []
-        cwd = (context.cwd or "").rstrip("/")
-        argv = self._split_command(command)
-        head = argv[0] if argv else ""
-        mutating_heads = {"rm", "mv", "cp", "chmod", "chown", "dd", "mkfs", "wipefs", "shred"}
         home = self._home(context)
+        cwd = (context.cwd or "").rstrip("/")
+        segments = self._split_segments(command)
+        seg_argvs = [self._split_command(seg) for seg in segments]
+        seg_heads = [argv[0] if argv else "" for argv in seg_argvs]
+        mutating_heads = {"rm", "mv", "cp", "chmod", "chown", "dd", "mkfs", "wipefs", "shred"}
 
-        if context.is_root and head in mutating_heads:
-            findings.append(
-                RiskFinding(
-                    rule_id="context.root_mutation",
-                    category="privilege_escalation",
-                    weight=16,
-                    severity="warn",
-                    message="Mutating command is being prepared from a root shell context.",
-                    evidence=context.user or "root",
-                    mitre_tactic="Privilege Escalation",
-                    mitre_technique="T1548",
-                )
-            )
+        collected: list[RiskFinding] = []
 
-        # rm is assessed by resolved target so that catastrophic paths block while
-        # routine project cleanup (e.g. `rm -rf node_modules`) is allowed.
-        if head == "rm":
-            findings.extend(self._destructive_rm_findings(argv, cwd, home))
+        for seg, argv, head in zip(segments, seg_argvs, seg_heads):
+            if not argv:
+                continue
 
-        # Path-target sensitivity for the remaining mutating commands.
-        if head in {"mv", "cp", "chmod", "chown"}:
-            sensitive_targets = self._sensitive_targets(argv, cwd, home)
-            if sensitive_targets:
-                findings.append(
+            if context.is_root and head in mutating_heads:
+                collected.append(
                     RiskFinding(
-                        rule_id="context.sensitive_target",
-                        category="destructive_filesystem",
-                        weight=20,
+                        rule_id="context.root_mutation",
+                        category="privilege_escalation",
+                        weight=16,
                         severity="warn",
-                        message="The command targets a system-sensitive path.",
-                        evidence=", ".join(sensitive_targets[:3]),
-                        mitre_tactic="Impact",
-                        mitre_technique="T1485",
+                        message="Mutating command is being prepared from a root shell context.",
+                        evidence=context.user or "root",
+                        mitre_tactic="Privilege Escalation",
+                        mitre_technique="T1548",
                     )
                 )
 
-        if context.last_exit_status not in (None, 0) and head in {"rm", "mv", "chmod", "chown"}:
-            findings.append(
-                RiskFinding(
-                    rule_id="context.failed_previous_command",
-                    category="operational_safety",
-                    weight=8,
-                    severity="warn",
-                    message="The previous command failed; destructive follow-up commands should be double-checked.",
-                    evidence=str(context.last_exit_status),
-                )
-            )
+            # rm is assessed by resolved target so catastrophic paths block while
+            # routine project cleanup (e.g. `rm -rf node_modules`) is allowed.
+            if head == "rm":
+                collected.extend(self._destructive_rm_findings(argv, cwd, home))
 
-        if self._has_secret_env_indicator(context) and head in {"env", "printenv", "set", "export"}:
-            findings.append(
+            if head in {"mv", "cp", "chmod", "chown"}:
+                sensitive_targets = self._sensitive_targets(argv, cwd, home)
+                if sensitive_targets:
+                    collected.append(
+                        RiskFinding(
+                            rule_id="context.sensitive_target",
+                            category="destructive_filesystem",
+                            weight=20,
+                            severity="warn",
+                            message="The command targets a system-sensitive path.",
+                            evidence=", ".join(sensitive_targets[:3]),
+                            mitre_tactic="Impact",
+                            mitre_technique="T1485",
+                        )
+                    )
+
+            if context.last_exit_status not in (None, 0) and head in {"rm", "mv", "chmod", "chown"}:
+                collected.append(
+                    RiskFinding(
+                        rule_id="context.failed_previous_command",
+                        category="operational_safety",
+                        weight=8,
+                        severity="warn",
+                        message="The previous command failed; destructive follow-up commands should be double-checked.",
+                        evidence=str(context.last_exit_status),
+                    )
+                )
+
+            if self._redirects_to_sensitive_path(argv, cwd, home):
+                collected.append(
+                    RiskFinding(
+                        rule_id="context.sensitive_redirection",
+                        category="persistence",
+                        weight=28,
+                        severity="warn",
+                        message="Command redirects output into a sensitive or persistence-related path.",
+                        evidence=seg,
+                        mitre_tactic="Persistence",
+                        mitre_technique="T1053",
+                    )
+                )
+
+        if self._has_secret_env_indicator(context) and any(
+            head in {"env", "printenv", "set", "export"} for head in seg_heads
+        ):
+            collected.append(
                 RiskFinding(
                     rule_id="context.secret_env_dump",
                     category="secrets_access",
@@ -236,7 +269,7 @@ class GuardrailEngine:
             )
 
         if self._is_kubernetes_context(context) and "secret" in command.lower():
-            findings.append(
+            collected.append(
                 RiskFinding(
                     rule_id="context.kubernetes_secret_context",
                     category="secrets_access",
@@ -249,20 +282,152 @@ class GuardrailEngine:
                 )
             )
 
-        if self._redirects_to_sensitive_path(argv, cwd, home):
+        # Collapse duplicate rule hits across segments to the highest-weight one
+        # so a multi-segment command cannot inflate its own score.
+        best: dict[str, RiskFinding] = {}
+        for finding in collected:
+            current = best.get(finding.rule_id)
+            if current is None or finding.weight > current.weight:
+                best[finding.rule_id] = finding
+        return list(best.values())
+
+    def _split_segments(self, command: str) -> list[str]:
+        parts = re.split(r"\s*(?:\|\||&&|;|\n|\|)\s*", command)
+        return [stripped for stripped in (part.strip() for part in parts) if stripped]
+
+    # -- Evasion-resistant decoding / de-obfuscation -----------------------------
+
+    def _evasion_view_findings(
+        self, command: str, seen_rule_ids: set[str]
+    ) -> list[RiskFinding]:
+        findings: list[RiskFinding] = []
+        added: set[str] = set()
+        decoded_hit = False
+        obfuscated_hit = False
+
+        for label, view in self._deobfuscated_views(command):
+            for rule in self.rules:
+                if rule.id in seen_rule_ids or rule.id in added:
+                    continue
+                match = rule.pattern.search(view)
+                if not match:
+                    continue
+                findings.append(
+                    RiskFinding(
+                        rule_id=rule.id,
+                        category=rule.category,
+                        weight=rule.weight,
+                        severity=rule.severity,
+                        message=rule.message,
+                        evidence=match.group(0)[:80],
+                        mitre_tactic=rule.mitre_tactic,
+                        mitre_technique=rule.mitre_technique,
+                    )
+                )
+                added.add(rule.id)
+                if label in {"base64", "hex"}:
+                    decoded_hit = True
+                else:
+                    obfuscated_hit = True
+
+        if findings and decoded_hit:
             findings.append(
                 RiskFinding(
-                    rule_id="context.sensitive_redirection",
-                    category="persistence",
-                    weight=28,
+                    rule_id="evasion.encoded_payload",
+                    category="defense_evasion",
+                    weight=12,
                     severity="warn",
-                    message="Command redirects output into a sensitive or persistence-related path.",
-                    evidence=command,
-                    mitre_tactic="Persistence",
-                    mitre_technique="T1053",
+                    message="A dangerous command was hidden inside an encoded payload (base64/hex).",
+                    evidence="decoded payload",
+                    mitre_tactic="Defense Evasion",
+                    mitre_technique="T1140",
+                )
+            )
+        if findings and obfuscated_hit:
+            findings.append(
+                RiskFinding(
+                    rule_id="evasion.obfuscated_command",
+                    category="defense_evasion",
+                    weight=10,
+                    severity="warn",
+                    message="A dangerous command was obscured with quoting, escaping, or variable indirection.",
+                    evidence="obfuscated command",
+                    mitre_tactic="Defense Evasion",
+                    mitre_technique="T1027",
                 )
             )
         return findings
+
+    def _deobfuscated_views(self, command: str) -> list[tuple[str, str]]:
+        views: list[tuple[str, str]] = []
+        seen: set[str] = {command}
+
+        def add(label: str, text: str) -> None:
+            if text and text not in seen and len(text) <= 16384:
+                seen.add(text)
+                views.append((label, text))
+
+        add("dequote", self._dequote(command))
+        add("vars", self._inline_vars(command))
+        add("hex", self._decode_hex(command))
+        for chunk in self._decode_base64_chunks(command):
+            add("base64", chunk)
+        return views
+
+    def _dequote(self, command: str) -> str:
+        text = command
+        for _ in range(3):
+            previous = text
+            text = text.replace("''", "").replace('""', "")
+            text = re.sub(r"(\w)['\"\\](\w)", r"\1\2", text)
+            if text == previous:
+                break
+        return text
+
+    def _inline_vars(self, command: str) -> str:
+        assignments = dict(
+            re.findall(r"(?:^|[\s;&|(])([A-Za-z_]\w*)=([^\s'\";|&()]+)", command)
+        )
+        if not assignments:
+            return command
+
+        def replace(match: re.Match[str]) -> str:
+            name = match.group(1) or match.group(2)
+            return assignments.get(name, match.group(0))
+
+        return re.sub(r"\$\{(\w+)\}|\$(\w+)", replace, command)
+
+    def _decode_hex(self, command: str) -> str:
+        if "\\x" not in command:
+            return command
+        return re.sub(
+            r"\\x([0-9A-Fa-f]{2})",
+            lambda match: chr(int(match.group(1), 16)),
+            command,
+        )
+
+    def _decode_base64_chunks(self, command: str) -> list[str]:
+        chunks: list[str] = []
+        for token in re.findall(r"[A-Za-z0-9+/]{16,}={0,2}", command):
+            if len(token) > 8192:
+                continue
+            padded = token + "=" * ((-len(token)) % 4)
+            try:
+                raw = base64.b64decode(padded, validate=True)
+            except Exception:
+                continue
+            try:
+                text = raw.decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+            if not text:
+                continue
+            printable = sum(1 for char in text if 32 <= ord(char) < 127 or char in "\t\n")
+            if printable / len(text) >= 0.85:
+                chunks.append(text)
+            if len(chunks) >= 8:
+                break
+        return chunks
 
     def _summary(self, level: RiskLevel, findings: list[RiskFinding]) -> str:
         if not findings:
