@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 import shlex
 
-
 TOKEN_RE = re.compile(r"[A-Za-z0-9_./:-]+")
 
 

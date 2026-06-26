@@ -57,7 +57,7 @@ class CommandRecord:
     examples: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "CommandRecord":
+    def from_dict(cls, data: dict[str, Any]) -> CommandRecord:
         return cls(
             id=str(data["id"]),
             command=str(data["command"]),

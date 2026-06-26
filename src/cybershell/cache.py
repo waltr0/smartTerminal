@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from collections import OrderedDict
 from pathlib import Path
+from typing import Any
 
 from cybershell.models import Suggestion
 from cybershell.text import normalize_space
@@ -14,7 +15,7 @@ class PrefixCache:
     def __init__(self, max_entries: int = 1000, path: Path | None = None) -> None:
         self.max_entries = max_entries
         self.path = path
-        self._items: OrderedDict[str, dict[str, object]] = OrderedDict()
+        self._items: OrderedDict[str, dict[str, Any]] = OrderedDict()
         if path and path.exists():
             self.load(path)
 

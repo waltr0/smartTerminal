@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from cybershell.data_loader import load_json_resource
 
@@ -18,7 +19,7 @@ class Policy:
     category_floor_decisions: dict[str, str] = field(default_factory=dict)
 
     @classmethod
-    def from_dict(cls, data: dict[str, object]) -> "Policy":
+    def from_dict(cls, data: dict[str, Any]) -> Policy:
         return cls(
             name=str(data["name"]),
             description=str(data.get("description", "")),
@@ -43,7 +44,7 @@ class PolicyRegistry:
         self.policies = policies
 
     @classmethod
-    def packaged(cls) -> "PolicyRegistry":
+    def packaged(cls) -> PolicyRegistry:
         raw = load_json_resource("policies.json")
         policies = {
             item["name"]: Policy.from_dict(item) for item in raw.get("policies", [])

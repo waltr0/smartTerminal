@@ -27,6 +27,7 @@ CyberShell asks:
 - Offline command suggestions from a built-in blue-team command knowledge base.
 - Cyber risk scoring for typed or generated commands.
 - Guardrail blocking for destructive filesystem, disk-wipe, reverse-shell, fork-bomb, and harmful natural-language intent patterns.
+- Evasion-resistant analysis: decodes base64/hex payloads, undoes quote/backslash/variable obfuscation, and assesses every sub-command of a pipeline or chain (see [THREAT_MODEL.md](THREAT_MODEL.md)).
 - Warning-level detection for secrets access, firewall tampering, persistence, privileged mutation, Kubernetes secret access, public scanning, and bulk archive/exfiltration patterns.
 - MITRE ATT&CK-style tactic and technique metadata in risk findings.
 - Safer alternatives for high-risk commands.
@@ -169,12 +170,24 @@ Benchmark:
 cybershell bench-eval --fail-on-miss
 ```
 
-Current packaged benchmark results should report:
+CyberShell-Bench is a categorized dataset of 143 cases (135 guardrail decisions
+plus 8 suggestion-contract cases) spanning destructive filesystem actions, device
+destruction, reverse shells, remote code execution, credential access,
+persistence, privilege escalation, defense evasion, recon, obfuscation/evasion,
+and a dedicated set of benign commands. Results are reported failures-and-all:
 
-- decision accuracy: `1.0000`
-- exact label accuracy: `1.0000`
-- block precision/recall: `1.0000/1.0000`
-- warn-or-block safety precision/recall: `1.0000/1.0000`
+- core accuracy (everything the tool claims to handle): `1.0000`
+- suggestion-contract accuracy: `1.0000`
+- **false-positive rate: `0.0000` across 66 safe commands**
+- block detection recall: `0.9348`
+- documented limitations surfaced as expected misses: `3`
+
+The three documented misses (`$(...)` command substitution, multi-layer base64,
+and `cd` into a directory followed by a relative delete) are static-analysis
+boundaries described in [THREAT_MODEL.md](THREAT_MODEL.md), so honest overall
+accuracy is `0.978` rather than a manufactured `1.0`. `bench-eval` also prints a
+per-category breakdown. `--fail-on-miss` exits non-zero only on unexpected
+regressions, never on the documented limitations.
 
 ## Optional Research Backends
 
@@ -205,6 +218,18 @@ Without installing:
 PYTHONPATH=src python -m cybershell doctor
 PYTHONPATH=src python -m unittest discover -s tests -v
 ```
+
+Lint, type-check, coverage, and a publishable build (requires `pip install -e ".[dev]"`):
+
+```bash
+ruff check src tests tools
+mypy
+coverage run --source=src/cybershell -m unittest discover -s tests && coverage report
+python -m build && twine check dist/*
+```
+
+See [CHANGELOG.md](CHANGELOG.md) for release history and [THREAT_MODEL.md](THREAT_MODEL.md)
+for detection scope and limitations.
 
 ## Project Structure
 

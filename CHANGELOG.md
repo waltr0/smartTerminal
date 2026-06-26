@@ -1,0 +1,68 @@
+# Changelog
+
+All notable changes to CyberShell Copilot are documented here. The format is
+based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
+project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.2.0] - 2026-06-26
+
+A substantial hardening release. The guardrail engine was taken from prototype to
+a state with a regression safety net, evasion resistance, broader coverage, and an
+honest, categorized benchmark.
+
+### Added
+- **Regression safety net**: a locked invariant corpus, a behavior snapshot, and a
+  drift checker (`tools/baseline_snapshot.py`) that fails the build if any locked
+  decision changes. Mirrored by `tests/test_baseline_regression.py`.
+- **Evasion-resistant analysis**: the engine now re-scans decoded and de-obfuscated
+  views of a command and analyzes every sub-command of a pipeline or chain. It
+  catches base64-encoded payloads, `\xHH` hex escapes, quote/backslash keyword
+  splitting, simple variable indirection, and dangerous commands hidden behind
+  command chaining.
+- **THREAT_MODEL.md**: an honest description of what the guardrails detect and the
+  documented limitations (multi-layer encodings, `$(...)` substitution,
+  `cd`-tracking, full shell parsing, advisory-not-enforcing).
+- **Expanded coverage**: guardrail rules grew to 31 (broader MITRE ATT&CK coverage
+  across Defense Evasion, Credential Access, Exfiltration, and Privilege
+  Escalation); the command knowledge base grew to 51 defensive / blue-team /
+  DevOps commands.
+- **Rebuilt benchmark** (`tools/build_benchmark.py`, 143 categorized cases) with a
+  reported per-category accuracy, a false-positive rate over a dedicated benign
+  set, block detection recall, and a suggestion-contract accuracy. Documented
+  limitations are surfaced as expected misses rather than hidden.
+- A `dev` optional-dependency group (ruff, mypy, build, twine, coverage) and a
+  single-sourced package version exposed via `cybershell --version`.
+
+### Changed
+- `rm` is scored by its resolved target: catastrophic paths (root, system
+  directories, whole home directories, critical files) block, while routine
+  project cleanup such as `rm -rf node_modules` is allowed. `sudo`/`doas`
+  prefixes are stripped before this analysis so privilege-wrapped commands cannot
+  bypass it.
+- Tightened several rules to remove false positives: archiving a user's own
+  project directory no longer trips the mass-exfil rule, and the `.env` secret
+  rule matches real path segments instead of substrings.
+- `bench-eval` now reports the new structured metrics; `--fail-on-miss` trips only
+  on unexpected regressions, not on documented limitations.
+- Reverse-shell detection extended to `nc -e`, `ncat --exec`, and
+  `socat exec:`/`system:`.
+
+### Fixed
+- `history-audit` now reports correct file line numbers.
+- Audit-log records redact secret-like tokens (passwords, API keys) before writing.
+- The prefix cache tolerates corrupt or non-object JSON.
+- The "`/`-prefix" bug that treated every absolute path as sensitive.
+
+### Quality
+- Lint (ruff) and type-check (mypy) pass cleanly; line coverage is ~85%.
+- CI runs the test matrix (Python 3.10-3.13), the benchmark and drift gates, lint,
+  type-check, coverage, and a clean-environment install of the built wheel.
+
+## [0.1.0]
+
+- Initial release: offline, deterministic shell-command risk scoring with
+  allow/warn/block decisions, MITRE ATT&CK mapping, safer-command suggestions,
+  policy profiles, shell integration, and a baseline benchmark.
+
+[0.2.0]: https://github.com/waltr0/smartTerminal/releases/tag/v0.2.0
+[0.1.0]: https://github.com/waltr0/smartTerminal/releases/tag/v0.1.0

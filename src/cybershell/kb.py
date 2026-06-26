@@ -48,7 +48,7 @@ class CommandKnowledgeBase:
                 self._token_index.setdefault(token, set()).add(record_id)
 
     @classmethod
-    def packaged(cls) -> "CommandKnowledgeBase":
+    def packaged(cls) -> CommandKnowledgeBase:
         raw = load_json_resource("command_kb.json")
         return cls([CommandRecord.from_dict(item) for item in raw["commands"]])
 

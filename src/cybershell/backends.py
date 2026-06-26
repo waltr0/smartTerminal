@@ -83,7 +83,7 @@ class FaissHnswKnowledgeBase(CommandKnowledgeBase):
         self._index.add(vectors)
 
     @classmethod
-    def packaged(cls) -> "FaissHnswKnowledgeBase":
+    def packaged(cls) -> FaissHnswKnowledgeBase:
         raw = __import__("cybershell.data_loader", fromlist=["load_json_resource"])
         data = raw.load_json_resource("command_kb.json")
         return cls([CommandRecord.from_dict(item) for item in data["commands"]])
@@ -103,7 +103,7 @@ class FaissHnswKnowledgeBase(CommandKnowledgeBase):
         vector = self._np.asarray(embedding, dtype="float32")
         scores, indexes = self._index.search(vector, top_k)
         hits: list[RetrievalHit] = []
-        for score, index in zip(scores[0], indexes[0]):
+        for score, index in zip(scores[0], indexes[0], strict=False):
             if index < 0:
                 continue
             record = self._by_id[self._record_ids[int(index)]]

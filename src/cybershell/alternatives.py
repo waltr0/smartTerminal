@@ -46,7 +46,10 @@ def safe_alternatives(command: str, findings: list[RiskFinding]) -> list[str]:
             ]
         )
     if "container_escape_risk" in categories:
-        suggestions.extend(["docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Status}}'", "docker inspect <container>"])
+        suggestions.extend([
+            "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Status}}'",
+            "docker inspect <container>",
+        ])
     if not suggestions:
         suggestions.append("Run a read-only inspection command before making changes.")
 

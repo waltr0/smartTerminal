@@ -20,13 +20,24 @@ from cybershell.models import (
     RiskAssessment,
     ShellContext,
     Suggestion,
+    SuggestionResult,
     SuggestionStatus,
 )
 from cybershell.policy import PolicyRegistry
 from cybershell.risk import GuardrailEngine
 
-
 POLICY_NAMES = PolicyRegistry.packaged().names()
+
+
+def _package_version() -> str:
+    try:
+        from importlib.metadata import version
+
+        return version("cybershell-copilot")
+    except Exception:  # pragma: no cover - source checkout without install metadata
+        from cybershell import __version__
+
+        return __version__
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -34,7 +45,9 @@ def build_parser() -> argparse.ArgumentParser:
         prog="cybershell",
         description="Offline cybersecurity-aware terminal command assistant.",
     )
-    parser.add_argument("--version", action="version", version="cybershell 0.1.0")
+    parser.add_argument(
+        "--version", action="version", version=f"cybershell {_package_version()}"
+    )
     sub = parser.add_subparsers(dest="command_name", required=True)
 
     suggest = sub.add_parser("suggest", help="Generate a safe command suggestion.")
@@ -167,7 +180,7 @@ def add_context_args(parser: argparse.ArgumentParser) -> None:
 
 
 def _should_emit_completion(
-    result: "SuggestionResult", args: argparse.Namespace, policy
+    result: SuggestionResult, args: argparse.Namespace, policy
 ) -> bool:
     """Decide whether a completion / shell-insert line should be emitted.
 
@@ -180,9 +193,7 @@ def _should_emit_completion(
     if result.risk.decision == Decision.BLOCK:
         return False
     safe_only = getattr(args, "safe_only", False) or policy.safe_only_suggestions
-    if safe_only and result.risk.decision != Decision.ALLOW:
-        return False
-    return True
+    return not (safe_only and result.risk.decision != Decision.ALLOW)
 
 
 def cmd_suggest(args: argparse.Namespace) -> int:
@@ -199,6 +210,7 @@ def cmd_suggest(args: argparse.Namespace) -> int:
 
     if args.completion_only or args.shell_insert:
         if _should_emit_completion(result, args, policy):
+            assert result.suggestion is not None  # guaranteed when emitting a completion
             if args.shell_insert:
                 if result.suggestion.completion:
                     print(f"append\t{result.suggestion.completion}", end="")
@@ -376,7 +388,7 @@ def cmd_policies(args: argparse.Namespace) -> int:
 
 def cmd_bench_eval(args: argparse.Namespace) -> int:
     if args.dataset is None:
-        resource = files("cybershell").joinpath("data", "cybershell_bench.jsonl")
+        resource = files("cybershell").joinpath("data").joinpath("cybershell_bench.jsonl")
         with as_file(resource) as dataset_path:
             report = evaluate_benchmark(dataset_path, default_mode=args.mode)
     else:

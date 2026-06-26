@@ -1,5 +1,7 @@
 """CyberShell Copilot package."""
 
+__version__ = "0.2.0"
+
 from cybershell.engine import SuggestionEngine
 from cybershell.models import RiskLevel, ShellContext, SuggestionResult
 from cybershell.policy import Policy, PolicyRegistry
@@ -11,4 +13,5 @@ __all__ = [
     "ShellContext",
     "SuggestionEngine",
     "SuggestionResult",
+    "__version__",
 ]

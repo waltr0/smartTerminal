@@ -32,7 +32,7 @@ class BenchmarkCase:
     env: dict[str, str] | None = None
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "BenchmarkCase":
+    def from_dict(cls, data: dict[str, Any]) -> BenchmarkCase:
         return cls(
             id=str(data["id"]),
             command=str(data["command"]),

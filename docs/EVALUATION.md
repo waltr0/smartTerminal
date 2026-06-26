@@ -12,21 +12,14 @@ python -m unittest discover -s tests -v
 cybershell bench-eval --dataset benchmarks/cybershell_bench.jsonl --fail-on-miss
 ```
 
-Current benchmark categories include:
-
-- read-only defensive commands
-- credential and secret exposure
-- firewall tampering
-- privilege-sensitive permission changes
-- Kubernetes secret access
-- Docker privileged containers
-- network reconnaissance
-- persistence writes
-- destructive filesystem commands
-- disk wiping
-- reverse shell patterns
-- fork bomb patterns
-- mode-specific lab and strict policy behavior
+The 143-case dataset is categorized (destructive-fs, benign-cleanup,
+device-destruction, reverse-shell, rce, credential-access, persistence,
+privilege-escalation, defense-evasion, recon, nl-intent, evasion,
+evasion-benign, evasion-advanced, benign-ops, suggestion-contract) and results
+are reported failures-and-all. The headline guarantees are a 0.0 false-positive
+rate over the benign set and perfect accuracy on the cases the tool claims to
+handle, with three documented evasion limitations surfaced rather than hidden.
+See `docs/BENCHMARK_SCHEMA.md` and `THREAT_MODEL.md`.
 
 ## CLI Smoke Matrix
 

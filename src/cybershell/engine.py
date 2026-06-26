@@ -34,7 +34,7 @@ class SuggestionEngine:
     @classmethod
     def packaged(
         cls, cache_path: Path | None = None, audit_path: Path | None = None
-    ) -> "SuggestionEngine":
+    ) -> SuggestionEngine:
         cache = PrefixCache(path=cache_path) if cache_path else PrefixCache()
         audit = AuditLog(audit_path) if audit_path else None
         return cls(cache=cache, audit_log=audit)

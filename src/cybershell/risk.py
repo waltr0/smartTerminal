@@ -49,7 +49,7 @@ class GuardrailEngine:
         self.rules = rules
 
     @classmethod
-    def packaged(cls) -> "GuardrailEngine":
+    def packaged(cls) -> GuardrailEngine:
         raw = load_json_resource("guardrail_rules.json")
         rules = []
         for item in raw["rules"]:
@@ -187,7 +187,7 @@ class GuardrailEngine:
 
         collected: list[RiskFinding] = []
 
-        for seg, argv, head in zip(segments, seg_argvs, seg_heads):
+        for seg, argv, head in zip(segments, seg_argvs, seg_heads, strict=True):
             if not argv:
                 continue
 
@@ -261,7 +261,10 @@ class GuardrailEngine:
                     category="secrets_access",
                     weight=22,
                     severity="warn",
-                    message="The environment appears to contain secret-like variables; dumping it may expose credentials.",
+                    message=(
+                        "The environment appears to contain secret-like variables; "
+                        "dumping it may expose credentials."
+                    ),
                     evidence="secret-like environment key",
                     mitre_tactic="Credential Access",
                     mitre_technique="T1552",
@@ -618,10 +621,10 @@ class GuardrailEngine:
             return True
         if "/.ssh" in norm:
             return True
-        for prefix in self.SENSITIVE_PREFIXES:
-            if norm == prefix or norm.startswith(prefix + "/"):
-                return True
-        return False
+        return any(
+            norm == prefix or norm.startswith(prefix + "/")
+            for prefix in self.SENSITIVE_PREFIXES
+        )
 
     def _sensitive_targets(
         self, argv: list[str], cwd: str, home: str | None = None
@@ -658,10 +661,8 @@ class GuardrailEngine:
             return "/.ssh/" in path or path.endswith("/.ssh")
 
         for index, token in enumerate(argv):
-            if token in {">", ">>"} and index + 1 < len(argv):
-                if is_sensitive(argv[index + 1]):
-                    return True
-            if token.startswith((">", ">>")) and len(token) > 1:
-                if is_sensitive(token.lstrip(">")):
-                    return True
+            if token in {">", ">>"} and index + 1 < len(argv) and is_sensitive(argv[index + 1]):
+                return True
+            if token.startswith((">", ">>")) and len(token) > 1 and is_sensitive(token.lstrip(">")):
+                return True
         return False

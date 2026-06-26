@@ -8,7 +8,6 @@ from typing import Any
 
 from cybershell.models import ShellContext, SuggestionResult
 
-
 _SECRET_ASSIGNMENT = re.compile(
     r"\b([A-Za-z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|APIKEY|API_KEY|PRIVATE_KEY)[A-Za-z0-9_]*)=(\S+)",
     re.IGNORECASE,

@@ -8,36 +8,74 @@ on:
 
 jobs:
   test:
-    name: Python ${{ matrix.python-version }}
+    name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
       - name: Install package
         run: |
-          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade pip
           python -m pip install -e .
-
       - name: Unit tests
         run: python -m unittest discover -s tests -v
-
-      - name: Benchmark
+      - name: Benchmark (fail on unexpected regressions)
         run: cybershell bench-eval --fail-on-miss
-
-      - name: Compile
-        run: python -m compileall src tests
-
+      - name: Regression drift check
+        run: python tools/baseline_snapshot.py --check
       - name: Shell syntax
         run: bash -n scripts/cybershell.bash
 
+  quality:
+    name: Lint, type-check, coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package with dev tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Ruff (lint)
+        run: ruff check src tests tools
+      - name: Mypy (type-check)
+        run: mypy
+      - name: Coverage (fail under 80%)
+        run: |
+          coverage run --source=src/cybershell -m unittest discover -s tests
+          coverage report --fail-under=80
+
+  package:
+    name: Build and verify distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+      - name: Check distribution metadata
+        run: twine check dist/*
+      - name: Install wheel in a clean environment and smoke-test
+        run: |
+          python -m venv /tmp/verify
+          /tmp/verify/bin/pip install dist/*.whl
+          /tmp/verify/bin/cybershell --version
+          /tmp/verify/bin/cybershell doctor
+          /tmp/verify/bin/cybershell bench-eval --fail-on-miss
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*

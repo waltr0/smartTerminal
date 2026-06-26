@@ -1,4 +1,5 @@
-.PHONY: install install-bash install-zsh uninstall test bench doctor smoke clean
+.PHONY: install install-bash install-zsh uninstall test bench doctor smoke \
+        lint typecheck coverage check build publish-check clean
 
 PYTHON ?= python3
 
@@ -22,6 +23,29 @@ bench:
 
 doctor:
 	PYTHONPATH=src $(PYTHON) -m cybershell doctor
+
+lint:
+	ruff check src tests tools
+
+typecheck:
+	mypy
+
+coverage:
+	PYTHONPATH=src coverage run --source=src/cybershell -m unittest discover -s tests
+	coverage report --fail-under=80
+
+# Full local gate: mirrors CI (lint, types, tests, benchmark, drift, coverage).
+check: lint typecheck test bench
+	PYTHONPATH=src $(PYTHON) tools/baseline_snapshot.py --check
+	$(MAKE) coverage
+
+build:
+	rm -rf dist build src/*.egg-info
+	$(PYTHON) -m build
+
+# Verify the built distribution before you `twine upload dist/*` yourself.
+publish-check: build
+	twine check dist/*
 
 smoke: test bench
 	PYTHONPATH=src $(PYTHON) -m cybershell policies
