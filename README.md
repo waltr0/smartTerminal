@@ -75,11 +75,17 @@ export PATH="$HOME/.local/bin:$PATH"
 
 Detailed docs:
 
+- [Platform support](docs/PLATFORM_SUPPORT.md) — what applies on Linux vs macOS vs Windows
+- [Privacy and data handling](PRIVACY.md)
 - [Linux install](docs/INSTALL_LINUX.md)
 - [Kali setup](docs/KALI_SETUP.md)
 - [Shell integration](docs/SHELL_INTEGRATION.md)
-- [User manual](docs/CyberShell_Copilot_User_Manual.pdf)
-- [Full project PDF guide](docs/CyberShell_Copilot_Project_Guide.pdf)
+- [User manual (Markdown)](docs/USER_MANUAL.md)
+- [Maintainer handoff checklist](HANDOFF.md)
+
+> The PDFs under `docs/` (`CyberShell_Copilot_User_Manual.pdf`,
+> `CyberShell_Copilot_Project_Guide.pdf`) predate v0.2.0 and contain outdated
+> numbers. The Markdown docs above are the maintained source of truth.
 
 ## Quick Commands
 

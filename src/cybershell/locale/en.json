@@ -1,0 +1,6 @@
+{
+  "cli.safe_summary": "No guardrail patterns matched; command appears safe for display.",
+  "cli.blocked_prefix": "Blocked: {reason}",
+  "status.answered": "Safe candidate generated from packaged knowledge.",
+  "status.unsupported": "Request could not map to a packaged command."
+}

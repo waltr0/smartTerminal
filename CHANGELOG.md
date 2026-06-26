@@ -38,6 +38,16 @@ honest, categorized benchmark.
   limitations are surfaced as expected misses rather than hidden.
 - A `dev` optional-dependency group (ruff, mypy, build, twine, coverage) and a
   single-sourced package version exposed via `cybershell --version`.
+- **Global-readiness documentation**: an honest cross-platform support assessment
+  (`docs/PLATFORM_SUPPORT.md`), a privacy/data-handling document
+  (`PRIVACY.md`) reflecting the offline, opt-in, locally-stored design, and a
+  maintainer handoff checklist (`HANDOFF.md`) of the human-only release tasks.
+- **Packaging scaffolds**: a non-root `Containerfile`, and clearly-labelled
+  Homebrew and Debian packaging templates under `packaging/` (untested, pending the
+  published release), alongside `pipx`/`pip` as the supported install path.
+- **i18n scaffold** (`cybershell.i18n` + `locale/en.json` + `docs/I18N.md`): a
+  tested message-catalog mechanism with safe fallback, with the codebase strings
+  not yet migrated (documented honestly as a deferred, post-1.0 effort).
 
 ### Changed
 - `rm` is scored by its resolved target: catastrophic paths (root, system

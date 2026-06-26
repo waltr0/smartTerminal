@@ -59,7 +59,7 @@ version = { attr = "cybershell.__version__" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-cybershell = ["data/*.json", "data/*.jsonl"]
+cybershell = ["data/*.json", "data/*.jsonl", "locale/*.json"]
 
 [tool.ruff]
 line-length = 120
