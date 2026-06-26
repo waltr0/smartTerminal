@@ -133,6 +133,12 @@ class CliTests(unittest.TestCase):
         self.assertTrue(payload)
         self.assertIn("ssh", json.dumps(payload).lower())
 
+    def test_kb_search_accepts_multi_word_query(self) -> None:
+        # Regression: a multi-word query must not be rejected as extra arguments.
+        code, out, err = self.invoke("kb-search", "failed", "ssh", "logins")
+        self.assertEqual(code, 0, err)
+        self.assertTrue(out.strip())
+
     def test_rules_json(self) -> None:
         code, out, err = self.invoke("rules", "--json")
         self.assertEqual(code, 0, err)

@@ -8,6 +8,17 @@ from cybershell.text import normalize_space, tokenize
 
 MIN_RETRIEVAL_SCORE = 1.0
 
+# Generic verbs/articles that appear in many command descriptions ("show ...",
+# "list ...") and should not, on their own, create or inflate a match. Filtering
+# them keeps retrieval focused on meaningful terms (e.g. "ssh", "failed").
+STOPWORDS = frozenset(
+    {
+        "a", "an", "the", "of", "to", "for", "in", "on", "with", "and", "or",
+        "show", "list", "display", "get", "find", "see", "view", "all", "any",
+        "me", "my", "current", "recent", "check", "print", "output",
+    }
+)
+
 
 @dataclass(slots=True)
 class RetrievalHit:
@@ -63,8 +74,8 @@ class CommandKnowledgeBase:
         if cwd and cwd not in {".", "/"}:
             query_parts.append(cwd)
         query = " ".join(query_parts)
-        query_tokens = set(tokenize(query))
-        partial_tokens = set(tokenize(partial))
+        query_tokens = set(tokenize(query)) - STOPWORDS
+        partial_tokens = set(tokenize(partial)) - STOPWORDS
         if not query_tokens and not partial:
             return []
 
@@ -92,7 +103,11 @@ class CommandKnowledgeBase:
             score = self._score_record(record, query_tokens, partial)
             if score >= MIN_RETRIEVAL_SCORE:
                 hits.append(RetrievalHit(record=record, score=score))
-        hits.sort(key=lambda hit: hit.score, reverse=True)
+        # Sort by score, then by id so ties are broken deterministically. Without
+        # the id tie-break, equal-scoring records would order by set-iteration
+        # order, which varies with hash randomization and makes suggestions
+        # non-deterministic across runs.
+        hits.sort(key=lambda hit: (-hit.score, hit.record.id))
         return hits[:top_k]
 
     def suggest_from_hit(self, partial: str, hit: RetrievalHit) -> Suggestion:

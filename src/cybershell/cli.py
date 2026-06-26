@@ -107,7 +107,7 @@ def build_parser() -> argparse.ArgumentParser:
     backends.set_defaults(func=cmd_backends)
 
     kb_search = sub.add_parser("kb-search", help="Search the packaged command knowledge base.")
-    kb_search.add_argument("query")
+    kb_search.add_argument("query", nargs="+", help="Search terms (multiple words allowed).")
     kb_search.add_argument("--top-k", type=int, default=5)
     kb_search.add_argument("--json", action="store_true")
     kb_search.set_defaults(func=cmd_kb_search)
@@ -295,7 +295,7 @@ def cmd_backends(args: argparse.Namespace) -> int:
 
 def cmd_kb_search(args: argparse.Namespace) -> int:
     kb = CommandKnowledgeBase.packaged()
-    context = ShellContext(partial_command=args.query, cwd=os.getcwd())
+    context = ShellContext(partial_command=" ".join(args.query), cwd=os.getcwd())
     hits = kb.retrieve(context, top_k=args.top_k)
     if args.json:
         print(

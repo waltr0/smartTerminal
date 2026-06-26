@@ -79,6 +79,21 @@ class KnowledgeBaseQualityTests(unittest.TestCase):
                 offenders.append((self._field(record, "id"), command))
         self.assertEqual(offenders, [], f"blocked suggestions in KB: {offenders}")
 
+    def test_retrieval_ordering_is_deterministic(self) -> None:
+        # Equal-scoring records must be ordered by id, not by hash-randomized set
+        # iteration, so suggestions are stable across runs.
+        from cybershell.kb import CommandKnowledgeBase
+
+        kb = CommandKnowledgeBase.packaged()
+        context = ShellContext(partial_command="show ssh failed logins", cwd=".")
+        hits = kb.retrieve(context, top_k=10)
+        for earlier, later in zip(hits, hits[1:], strict=False):
+            self.assertGreaterEqual(earlier.score, later.score)
+            if earlier.score == later.score:
+                self.assertLess(earlier.record.id, later.record.id)
+        again = [hit.record.id for hit in kb.retrieve(context, top_k=10)]
+        self.assertEqual([hit.record.id for hit in hits], again)
+
 
 if __name__ == "__main__":
     unittest.main()
