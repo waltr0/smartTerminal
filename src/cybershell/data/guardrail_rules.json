@@ -173,7 +173,7 @@
     },
     {
       "id": "persistence.cron_write",
-      "pattern": "(\\bcrontab\\s+-e\\b|\\|\\s*crontab\\b|\\bcrontab\\s+[^\\-\\s]\\S*|echo\\b[^|]*>>\\s*/etc/cron|systemctl\\s+enable\\b)",
+      "pattern": "(\\bcrontab\\s+-e\\b|\\|\\s*crontab\\b|(?:^|[;&]\\s*)crontab\\s+[^\\-\\s]\\S*|echo\\b[^|]*>>\\s*/etc/cron|systemctl\\s+enable\\b)",
       "category": "persistence",
       "weight": 38,
       "severity": "warn",

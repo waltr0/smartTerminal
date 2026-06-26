@@ -24,8 +24,14 @@ honest, categorized benchmark.
   `cd`-tracking, full shell parsing, advisory-not-enforcing).
 - **Expanded coverage**: guardrail rules grew to 31 (broader MITRE ATT&CK coverage
   across Defense Evasion, Credential Access, Exfiltration, and Privilege
-  Escalation); the command knowledge base grew to 51 defensive / blue-team /
-  DevOps commands.
+  Escalation); the command knowledge base grew to 114 curated defensive /
+  blue-team / DevOps commands across incident response, network inspection,
+  file integrity, forensics, process triage, persistence audit, account review,
+  container and Kubernetes security, cloud posture, and host hardening.
+- **Knowledge-base quality gate** (`tests/test_kb_quality.py`): every command is
+  validated for schema, unique id/command, and MITRE format, and -- critically --
+  is checked to ensure the guardrail engine would never block it. A suggestion the
+  tool would refuse to display can no longer be shipped.
 - **Rebuilt benchmark** (`tools/build_benchmark.py`, 143 categorized cases) with a
   reported per-category accuracy, a false-positive rate over a dedicated benign
   set, block detection recall, and a suggestion-contract accuracy. Documented

@@ -64,11 +64,16 @@ class CommandKnowledgeBase:
             query_parts.append(cwd)
         query = " ".join(query_parts)
         query_tokens = set(tokenize(query))
+        partial_tokens = set(tokenize(partial))
         if not query_tokens and not partial:
             return []
 
+        # Candidacy is driven by the user's actual request (the partial). Context
+        # tokens from cwd/history/env still contribute to ranking via query_tokens
+        # below, but must not conjure a match on their own -- otherwise an
+        # unrelated request in, say, /tmp would surface a /tmp-related command.
         candidates: set[str] = set()
-        for token in query_tokens:
+        for token in partial_tokens:
             candidates.update(self._token_index.get(token, set()))
         if partial:
             partial_lower = partial.lower()
