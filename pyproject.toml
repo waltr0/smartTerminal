@@ -9,7 +9,7 @@ description = "Offline cybersecurity-aware terminal command assistant with risk 
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-  { name = "Elite Taskforce" }
+  { name = "Sumit Sunil Khurpade" }
 ]
 license = "MIT"
 license-files = ["LICENSE"]
