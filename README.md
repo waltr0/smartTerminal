@@ -87,11 +87,12 @@ Detailed docs:
 - [Kali setup](docs/KALI_SETUP.md)
 - [Shell integration](docs/SHELL_INTEGRATION.md)
 - [User manual (Markdown)](docs/USER_MANUAL.md)
+- [User manual (PDF, v0.2.0)](docs/CyberShell_Copilot_User_Manual_v0.2.0.pdf)
 - [Maintainer handoff checklist](HANDOFF.md)
 
-> The PDFs previously shipped under `docs/` predate v0.2.0 and contain outdated
-> numbers. The Markdown docs above, this README, and the generated v0.2.0 user
-> manual are the maintained sources of truth.
+> The Markdown docs above, this README, and the v0.2.0 user manual PDF are the
+> maintained sources of truth. Regenerate the PDF with
+> `python tools/build_manual_pdf.py`.
 
 ## Command Reference
 
